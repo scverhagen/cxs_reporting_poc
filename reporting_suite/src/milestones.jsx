@@ -1,3 +1,5 @@
+import { useId } from "react";
+import { usePlotSize } from "./use-plot-size";
 import { EmployeeDrillLink } from "./hierarchy";
 import { ReportPlot } from "./period-charts";
 import { Comparison, Distribution } from "./charts";
@@ -11,7 +13,6 @@ import {
   iso,
   milestoneDate,
   upcomingIn,
-  awardTrend,
   milestoneRows,
   awardSeries,
   tally,
@@ -19,6 +20,93 @@ import {
 export const types = (s) =>
   s[0].toUpperCase() + s.slice(1).replaceAll("_", " ");
 export const ages = ["0-29", "30-59", "60-89", "90+"];
+function AwardTrend({ rows, asOf }) {
+  const { ref, width, height } = usePlotSize();
+  const gradient = useId();
+  const { months, series } = awardSeries(rows, asOf);
+  const top = Math.max(2, Math.ceil(Math.max(...series.flat()) / 2) * 2);
+  const left = Math.max(18, 8 + String(top).length * 7);
+  const right = width - 14;
+  const bottom = height - 25;
+  const x = (i) => left + ((right - left) * i) / (months.length - 1);
+  const y = (n) => bottom - ((bottom - 12) * n) / top;
+  return (
+    <>
+      <div className="trend-legend">
+        <span>Newly eligible</span>
+        <span>Redeemed</span>
+      </div>
+      <svg
+        ref={ref}
+        className="report-plot"
+        role="img"
+        aria-label={`Monthly newly eligible awards: ${series[0].join(", ")}. Monthly redemptions: ${series[1].join(", ")}.`}
+      >
+        <defs>
+          <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
+            <stop stopColor="#368ef7" stopOpacity=".18" />
+            <stop offset="1" stopColor="#368ef7" stopOpacity=".02" />
+          </linearGradient>
+        </defs>
+        {[0, top / 2, top].map((n) => (
+          <g key={n}>
+            <path d={`M${left} ${y(n)}H${right}`} stroke="#ededed" />
+            <text x={left - 6} y={y(n) + 4} textAnchor="end">
+              {n}
+            </text>
+          </g>
+        ))}
+        {series.map((values, j) => {
+          const d = values
+            .map((n, i) => `${i ? "L" : "M"}${x(i)} ${y(n)}`)
+            .join(" ");
+          const color = j ? "#1c8873" : "#3185f5";
+          return (
+            <g key={j}>
+              {j === 0 && (
+                <path
+                  d={`${d} V${bottom} H${left} Z`}
+                  fill={`url(#${gradient})`}
+                />
+              )}
+              <path
+                d={d}
+                fill="none"
+                stroke={color}
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+              />
+              {values.map((n, i) => (
+                <circle
+                  key={i}
+                  cx={x(i)}
+                  cy={y(n)}
+                  r="3"
+                  fill="white"
+                  stroke={color}
+                  strokeWidth="2"
+                >
+                  <title>
+                    {iso(months[i]).slice(0, 7)} · {j ? "Redeemed" : "Eligible"}
+                    : {n}
+                  </title>
+                </circle>
+              ))}
+            </g>
+          );
+        })}
+        {months.map((month, i) => (
+          <text key={i} x={x(i)} y={height - 5} textAnchor="middle">
+            {month.toLocaleDateString("en-US", {
+              month: "short",
+              timeZone: "UTC",
+            })}
+          </text>
+        ))}
+      </svg>
+    </>
+  );
+}
 function Overview({ rows, data, asOf, drill }) {
   const { output } = useView();
   const outstanding = rows.filter((r) => r.entitlement_state === "outstanding");
@@ -76,7 +164,7 @@ function Overview({ rows, data, asOf, drill }) {
             title="Award activity over time"
             caption={"Monthly awards through " + milestoneDate(asOf)}
           >
-            <div dangerouslySetInnerHTML={{ __html: awardTrend(rows, asOf) }} />
+            <AwardTrend rows={rows} asOf={asOf} />
           </Panel>
           <ReportPlot>
             <Panel title="Awards by status" caption="Share of total awards">

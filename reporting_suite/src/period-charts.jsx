@@ -1,3 +1,4 @@
+import { usePlotSize } from "./use-plot-size";
 import { createContext, useContext, useState } from "react";
 import { GridTable, Panel } from "./shared";
 import { day, dayMs, iso, measure, shortDate } from "./metrics";
@@ -156,6 +157,7 @@ function LineComparison(props) {
   const { title, unit, rows, preview, label, domain } = props;
   const { output } = useView();
   const [selection, setSelection] = useState(null);
+  const { ref, width, height } = usePlotSize();
   if (output)
     return (
       <Panel title={title}>
@@ -167,9 +169,13 @@ function LineComparison(props) {
     high - low <= 4
       ? Array.from({ length: high - low + 1 }, (_, i) => low + i)
       : [low, Math.round((low + high) / 2), high];
+  const left = 8 + Math.max(...ticks.map((n) => format(n).length)) * 7;
+  const right = width - 8;
+  const bottom = height - 26;
+  const span = Math.max(1, right - left);
   const x = (i) =>
-    rows.length === 1 ? 260 : 48 + (426 * i) / (rows.length - 1);
-  const y = (n) => 118 - ((n - low) * 104) / (high - low);
+    left + span * (rows.length === 1 ? 0.5 : i / (rows.length - 1));
+  const y = (n) => bottom - ((n - low) * (bottom - 12)) / (high - low);
   const active = Math.min(selection ?? 0, rows.length - 1);
   const pair = rows[active];
   const paths = (label ? [0, 1] : [0]).map((series) =>
@@ -193,7 +199,8 @@ function LineComparison(props) {
           ))}
         </div>
         <svg
-          viewBox="0 0 492 151"
+          ref={ref}
+          className="report-plot"
           role="img"
           aria-label={
             title +
@@ -209,7 +216,7 @@ function LineComparison(props) {
             const svgPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(
               e.currentTarget.getScreenCTM().inverse(),
             );
-            const pos = (svgPoint.x - 48) / 426;
+            const pos = (svgPoint.x - left) / span;
             setSelection(
               Math.max(
                 0,
@@ -220,10 +227,10 @@ function LineComparison(props) {
         >
           {ticks.map((n) => (
             <g key={n}>
-              <text x="40" y={y(n) + 4} textAnchor="end">
+              <text x={left - 6} y={y(n) + 4} textAnchor="end">
                 {format(n)}
               </text>
-              <path className="period-grid" d={"M48 " + y(n) + "H474"} />
+              <path className="period-grid" d={`M${left} ${y(n)}H${right}`} />
             </g>
           ))}
           {paths.map((path, i) => (
@@ -233,7 +240,7 @@ function LineComparison(props) {
               d={path}
             />
           ))}
-          <path className="period-cursor" d={"M" + x(active) + " 10V118"} />
+          <path className="period-cursor" d={`M${x(active)} 8V${bottom}`} />
           {pair.map((p, i) =>
             p?.value == null ? null : (
               <circle
@@ -248,7 +255,20 @@ function LineComparison(props) {
           {Array.from(
             new Set([0, Math.floor((rows.length - 1) / 2), rows.length - 1]),
           ).map((i) => (
-            <text key={i} x={x(i)} y="142" textAnchor="middle">
+            <text
+              key={i}
+              x={x(i)}
+              y={height - 5}
+              textAnchor={
+                rows.length === 1
+                  ? "middle"
+                  : i === rows.length - 1
+                    ? "end"
+                    : i === 0
+                      ? "start"
+                      : "middle"
+              }
+            >
               Day {i + 1}
             </text>
           ))}

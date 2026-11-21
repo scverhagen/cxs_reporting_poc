@@ -1,3 +1,4 @@
+import { usePlotSize } from "./use-plot-size";
 import { useId, useState } from "react";
 import { GridTable, Panel } from "./shared";
 import { useView } from "./view-state";
@@ -167,6 +168,76 @@ export function Distribution({
   );
 }
 
+function BalanceSeries({ rows, index, lower, upper, title }) {
+  const { ref, width: plotWidth, height } = usePlotSize();
+  const gradient = useId();
+  const inset = 7;
+  const width = Math.max(0, plotWidth - 2 * inset);
+  const bottom = height - inset;
+  const x = (i) =>
+    inset + width * (rows.length === 1 ? 0.5 : i / (rows.length - 1));
+  const y = (n) => bottom - ((n - lower) / (upper - lower)) * (bottom - inset);
+  const line = rows
+    .map(([, n], i) => `${i ? "L" : "M"}${x(i)} ${y(n)}`)
+    .join(" ");
+  return (
+    <svg
+      ref={ref}
+      role="img"
+      aria-label={`${title} from ${dateLabel(rows[0][0])} to ${dateLabel(rows.at(-1)[0])}`}
+    >
+      {width > 0 && (
+        <>
+          <defs>
+            <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
+              <stop stopColor="#4e88db" stopOpacity=".28" />
+              <stop offset="1" stopColor="#4e88db" stopOpacity=".03" />
+            </linearGradient>
+          </defs>
+          {[upper, (upper + lower) / 2, lower].map((tick) => (
+            <path
+              key={tick}
+              d={`M${inset} ${y(tick)}h${width}`}
+              stroke="#e2e7ed"
+              strokeDasharray="3 3"
+            />
+          ))}
+          <path
+            d={`${line} V${bottom} H${x(0)} Z`}
+            fill={`url(#${gradient})`}
+          />
+          <path
+            d={line}
+            fill="none"
+            stroke={colors[0]}
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M${x(index)} ${inset}V${bottom}`}
+            stroke="#929eac"
+            strokeDasharray="3 3"
+          />
+          {rows.map(
+            ([date, n], i) =>
+              (i === index || width / (rows.length - 1) >= 14) && (
+                <circle
+                  key={date}
+                  cx={x(i)}
+                  cy={y(n)}
+                  r={i === index ? 4.5 : 2.5}
+                  stroke="white"
+                  fill={colors[0]}
+                />
+              ),
+          )}
+        </>
+      )}
+    </svg>
+  );
+}
+
 // Carry the opening balance into the first bucket, including idle days or months.
 export function BalanceTrend({
   title,
@@ -178,7 +249,6 @@ export function BalanceTrend({
 }) {
   const { output } = useView();
   const [selection, setSelection] = useState(null);
-  const gradient = useId();
   const daily = (Date.parse(through) - Date.parse(from)) / 86400000 < 45;
   const bucket = (date) => date.slice(0, daily ? 10 : 7);
   const deltas = new Map();
@@ -219,12 +289,6 @@ export function BalanceTrend({
     lower + step,
     Math.ceil((high + step * 0.1) / step) * step,
   );
-  const x = (i) =>
-    rows.length === 1 ? 300 : 8 + (i * 584) / (rows.length - 1);
-  const y = (n) => 105 - ((n - lower) * 97) / (max - lower);
-  const line = rows
-    .map(([, n], i) => (i ? "L" : "M") + x(i) + " " + y(n))
-    .join(" ");
   return (
     <Panel title={title} caption={caption}>
       {output ? (
@@ -247,82 +311,36 @@ export function BalanceTrend({
               <span>{number((max + lower) / 2)}</span>
               <span>{number(lower)}</span>
             </div>
-            <svg
-              viewBox="0 0 600 112"
-              preserveAspectRatio="none"
-              role="img"
-              aria-label={
-                title +
-                " from " +
-                dateLabel(rows[0][0]) +
-                " to " +
-                dateLabel(rows.at(-1)[0])
-              }
-            >
-              <defs>
-                <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
-                  <stop stopColor="#4e88db" stopOpacity=".28" />
-                  <stop offset="1" stopColor="#4e88db" stopOpacity=".03" />
-                </linearGradient>
-              </defs>
-              {[8, 56, 105].map((v) => (
-                <path
-                  key={v}
-                  d={`M0 ${v}H600`}
-                  stroke="#e2e7ed"
-                  strokeDasharray="4 4"
-                />
-              ))}
-              <path
-                d={line + ` L${x(rows.length - 1)} 105 L${x(0)} 105 Z`}
-                fill={`url(#${gradient})`}
-              />
-              <path
-                d={line}
-                fill="none"
-                stroke={colors[0]}
-                strokeWidth="2.5"
-                vectorEffect="non-scaling-stroke"
-              />
-              <path
-                d={`M${x(index)} 5 V105`}
-                stroke="#929eac"
-                strokeDasharray="3 3"
-              />
-              {rows.map(([m, n], i) => (
-                <circle
-                  key={m}
-                  cx={x(i)}
-                  cy={y(n)}
-                  r={i === index ? 4.5 : 3}
-                  stroke="white"
-                  fill={colors[0]}
-                />
-              ))}
-            </svg>
-          </div>
-          {!preview && (
-            <input
-              type="range"
-              aria-label={
-                daily ? "Inspect daily balance" : "Inspect monthly balance"
-              }
-              aria-valuetext={
-                dateLabel(rows[index][0]) +
-                ", " +
-                number(rows[index][1]) +
-                " points"
-              }
-              min={0}
-              max={rows.length - 1}
-              value={index}
-              disabled={rows.length === 1}
-              onChange={(e) => setSelection(rows[Number(e.target.value)][0])}
+            <BalanceSeries
+              rows={rows}
+              index={index}
+              lower={lower}
+              upper={max}
+              title={title}
             />
-          )}
-          <div className="balance-axis">
-            <span>{dateLabel(rows[0][0])}</span>
-            {rows.length > 1 && <span>{dateLabel(rows.at(-1)[0])}</span>}
+            {!preview && (
+              <input
+                type="range"
+                aria-label={
+                  daily ? "Inspect daily balance" : "Inspect monthly balance"
+                }
+                aria-valuetext={
+                  dateLabel(rows[index][0]) +
+                  ", " +
+                  number(rows[index][1]) +
+                  " points"
+                }
+                min={0}
+                max={rows.length - 1}
+                value={index}
+                disabled={rows.length === 1}
+                onChange={(e) => setSelection(rows[Number(e.target.value)][0])}
+              />
+            )}
+            <div className="balance-axis">
+              <span>{dateLabel(rows[0][0])}</span>
+              {rows.length > 1 && <span>{dateLabel(rows.at(-1)[0])}</span>}
+            </div>
           </div>
         </div>
       )}

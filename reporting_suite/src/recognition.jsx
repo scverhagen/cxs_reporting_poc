@@ -1,3 +1,4 @@
+import { usePlotSize } from "./use-plot-size";
 import { EmployeeDrillLink } from "./hierarchy";
 import { attributeLabel } from "./employee-attributes";
 import { ReportPlot } from "./period-charts";
@@ -73,6 +74,7 @@ export function Timeline({
   color = "#3787f5",
 }) {
   const { output } = useView();
+  const { ref, width, height } = usePlotSize();
   if (end < start)
     return (
       <Panel title={title} caption="Sample history ends before this window.">
@@ -107,35 +109,38 @@ export function Timeline({
       </Panel>
     );
   const max = Math.max(1, ...counts);
+  const left = 8 + String(max).length * 8;
+  const right = width - 3;
+  const bottom = height - 24;
+  const bucketWidth = Math.max(0, right - left) / counts.length;
+  const barWidth = Math.min(30, bucketWidth * 0.74);
+  const y = (n) => bottom - ((bottom - 10) * n) / max;
   return (
     <Panel
       title={title}
       caption={unit + " per " + (step === 1 ? "day" : step + "-day interval")}
     >
       <svg
-        className="chart"
-        viewBox="0 0 500 150"
+        ref={ref}
+        className="report-plot"
         role="img"
         aria-label={events.length + " " + unit.toLowerCase()}
       >
         {[...new Set([0, Math.ceil(max / 2), max])].map((n) => (
           <g key={n}>
-            <text x="0" y={135 - (120 * n) / max} fontSize="12" fill="#6b7280">
+            <text x={left - 6} y={y(n) + 4} textAnchor="end">
               {n}
             </text>
-            <path
-              d={"M22 " + (131 - (120 * n) / max) + "h475"}
-              stroke="#e4e4e7"
-            />
+            <path d={`M${left} ${y(n)}H${right}`} stroke="#e4e4e7" />
           </g>
         ))}
         {counts.map((n, i) => (
           <rect
             key={i}
-            x={23 + (i * 473) / counts.length}
-            width={Math.min(30, 350 / counts.length)}
-            y={131 - (120 * n) / max}
-            height={(120 * n) / max}
+            x={left + (i + 0.5) * bucketWidth - barWidth / 2}
+            width={barWidth}
+            y={y(n)}
+            height={bottom - y(n)}
             rx="2"
             fill={color}
           >
@@ -145,11 +150,15 @@ export function Timeline({
             </title>
           </rect>
         ))}
+        <text x={left} y={height - 4}>
+          {shortDate(start)}
+        </text>
+        {end !== start && (
+          <text x={right} y={height - 4} textAnchor="end">
+            {shortDate(end)}
+          </text>
+        )}
       </svg>
-      <div className="chartfoot">
-        <span>{shortDate(start)}</span>
-        <span>{shortDate(end)}</span>
-      </div>
     </Panel>
   );
 }

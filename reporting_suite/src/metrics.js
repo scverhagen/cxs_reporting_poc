@@ -54,51 +54,6 @@ export function awardSeries(rows, asOf) {
   );
   return { months, series };
 }
-export function awardTrend(rows, asOf) {
-  const { months, series } = awardSeries(rows, asOf);
-  const top = Math.max(2, Math.ceil(Math.max(...series.flat()) / 2) * 2);
-  const x = (index) => 32 + index * 82;
-  const y = (value) => 116 - (value * 96) / top;
-  const grid = [0, top / 2, top]
-    .map(
-      (value) =>
-        `<path d="M32 ${y(value)}H442" stroke="#ededed"/><text x="18" y="${y(value) + 4}" text-anchor="end">${value}</text>`,
-    )
-    .join("");
-  const lines = series
-    .map((values, index) => {
-      const path = values
-        .map((value, i) => (i ? "L" : "M") + x(i) + " " + y(value))
-        .join(" ");
-      const color = index ? "#1c8873" : "#3185f5";
-      const area = index
-        ? ""
-        : `<path d="${path} V116 H32 Z" fill="url(#eligibleFill)"/>`;
-      const dots = values
-        .map(
-          (value, i) =>
-            `<circle cx="${x(i)}" cy="${y(value)}" r="3" fill="white" stroke="${color}" stroke-width="2"><title>${iso(months[i]).slice(0, 7)} · ${index ? "Redeemed" : "Eligible"}: ${value}</title></circle>`,
-        )
-        .join("");
-      return (
-        area +
-        `<path d="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>` +
-        dots
-      );
-    })
-    .join("");
-  const labels = months
-    .map(
-      (month, i) =>
-        `<text x="${x(i)}" y="140" text-anchor="middle">${month.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" })}</text>`,
-    )
-    .join("");
-  return `<div class="trend-legend"><span>Newly eligible</span><span>Redeemed</span></div>
-    <svg class="award-trend" viewBox="0 0 467 150" role="img" aria-label="Monthly newly eligible awards: ${series[0].join(", ")}. Monthly redemptions: ${series[1].join(", ")}.">
-    <defs><linearGradient id="eligibleFill" x1="0" y1="0" x2="0%" y2="100%"><stop stop-color="#368ef7" stop-opacity=".18"/><stop offset="1" stop-color="#368ef7" stop-opacity=".02"/></linearGradient></defs>
-    ${grid}${lines}${labels}</svg>`;
-}
-
 export function measure(
   data,
   events,
