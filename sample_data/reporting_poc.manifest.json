@@ -1,0 +1,87 @@
+{
+  "data_as_of": "2026-11-10T16:00:00Z",
+  "synthetic": true,
+  "definition_version": "poc-v1-approval-utc",
+  "scenarios": [
+    {
+      "tenant_id": "meridian",
+      "name": "Meridian Labs",
+      "focus": "Recognition, values, participation and historical eligibility",
+      "counts": {
+        "employees": 24,
+        "user_logins": 1495,
+        "recognitions": 146,
+        "milestone_entitlements": 13,
+        "orders": 10,
+        "employee_points_ledger": 131,
+        "bank_ledger": 101
+      },
+      "october_approved_events": 19,
+      "october_approved_points": 850
+    },
+    {
+      "tenant_id": "harbor",
+      "name": "Harbor Health",
+      "focus": "Milestone pipeline, non-responders and notification exceptions",
+      "counts": {
+        "employees": 40,
+        "user_logins": 2475,
+        "recognitions": 102,
+        "milestone_entitlements": 13,
+        "orders": 10,
+        "employee_points_ledger": 125,
+        "bank_ledger": 79
+      },
+      "october_approved_events": 15,
+      "october_approved_points": 725
+    },
+    {
+      "tenant_id": "summit",
+      "name": "Summit Retail",
+      "focus": "Shared employee wallets, unified orders and fulfillment",
+      "counts": {
+        "employees": 60,
+        "user_logins": 3514,
+        "recognitions": 234,
+        "milestone_entitlements": 13,
+        "orders": 10,
+        "employee_points_ledger": 233,
+        "bank_ledger": 167
+      },
+      "october_approved_events": 27,
+      "october_approved_points": 1225
+    },
+    {
+      "tenant_id": "atlas",
+      "name": "Atlas Industrial",
+      "focus": "Many-to-many funding banks, budgets and approval investigation",
+      "counts": {
+        "employees": 32,
+        "user_logins": 2008,
+        "recognitions": 124,
+        "milestone_entitlements": 13,
+        "orders": 10,
+        "employee_points_ledger": 128,
+        "bank_ledger": 90
+      },
+      "october_approved_events": 17,
+      "october_approved_points": 775
+    },
+    {
+      "tenant_id": "cedar",
+      "name": "Cedar Global",
+      "focus": "Restricted reporting, financial extensions and asynchronous exports",
+      "counts": {
+        "employees": 36,
+        "user_logins": 1953,
+        "recognitions": 168,
+        "milestone_entitlements": 13,
+        "orders": 10,
+        "employee_points_ledger": 165,
+        "bank_ledger": 123
+      },
+      "october_approved_events": 21,
+      "october_approved_points": 925
+    }
+  ]
+}

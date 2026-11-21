@@ -1,0 +1,17 @@
+# Local development files
+.DS_Store
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+.venv/
+.env
+.env.*
+!.env.example
+
+# Generated fixture database and SQLite sidecars
+/sample_data/reporting_poc.sqlite
+/sample_data/reporting_poc.sqlite.tmp
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
