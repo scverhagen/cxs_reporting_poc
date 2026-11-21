@@ -1,6 +1,6 @@
 # CXS Recognize — Reporting Modernization Requirements
 
-**Draft v1 · Discovery synthesis November 9, 2026 · Updated November 20, 2026**
+**Draft v1 · Discovery synthesis November 9, 2026 · Updated November 21, 2026**
 
 ## 1. Purpose and problem
 
@@ -34,6 +34,8 @@ This document describes product behavior and business rules. It does not select 
 | Manager or individual contributor | Normal recognition experience and explicitly granted team or personal login history | **No recognition leaderboards** by default; no implied access to owner reports |
 
 The POC covers Meridian Labs, Harbor Health, Summit Retail, Atlas Industrial and Cedar Global using synthetic data. Each supports three test roles. The admin has customer-wide access to granted reports. The manager has North Division access to recognition activity, categories, participation, milestones and logins. The employee has personal access to points, orders, milestones and logins. Customer-specific attributes and enabled reports follow the selected customer. Monetary amounts in all five datasets use US dollars. Points retain their own unit.
+
+The demo role persists across customer changes and reloads within the browser session. Report navigation and search list the reports available to that customer and role. On a customer switch, retain applicable dates and comparison settings, clear customer-specific selections, and resolve the report against the new grants. If the report is unavailable, open an authorized report. Each workspace shows the selected persona’s own saved views, schedules and deliveries.
 
 ## 4. Prioritization from discovery
 
@@ -130,12 +132,15 @@ Report sending and receiving participation separately. For each direction and pe
 - Deliver a basic **Milestone Awards Overview** alongside both curated milestone reports, showing upcoming counts, outstanding entitlements, redemption performance, aging, and optional upcoming expirations.
 - Upcoming Milestones report: identify employees approaching eligibility over configurable horizons (e.g., 30/60/90 days), milestone type, date, program, and relevant employee attributes.
 - In CXS Recognize, becoming eligible normally triggers notification; report notification delivery exceptions separately if events are available.
+- Compare newly eligible entitlements and completed redemptions by UTC calendar month for the six months through the snapshot. Count eligibility and redemption in the month each occurred. The snapshot redemption rate divides redeemed entitlements by all entitlements that have reached eligibility, including expired awards.
+- The upcoming list supports 30, 60 and 90 days and all future dates. Provide counts by eligibility month and open the matching employees from the selected horizon.
 
 ### M2. Milestone Award Non-Responders and Activity
 
 - Non-responder means an eligible/notified milestone award entitlement that remains **unredeemed**. It is not an order already redeemed but awaiting fulfillment.
 - Include employee, milestone type, eligibility date, outstanding age, award value if applicable, current redemption status, and expiration date only if configured.
 - Support aging buckets, milestone-type filtering, hierarchy drill-down, saved views, and scheduling.
+- Group outstanding entitlements by days since eligibility (0–29, 30–59, 60–89 and 90+). Selecting a group returns its matching entitlements. Include outstanding entitlements with failed notifications. Flag notification failures and upcoming expirations for follow-up.
 - Milestone Award Activity tracks eligibility, outstanding entitlements, and completed redemptions.
 - Milestone entitlements are **normally distinct** from the employee's shared recognition points balance; uncommon points-funded milestone awards are accommodated without redefining the normal case.
 
@@ -145,6 +150,7 @@ Report sending and receiving participation separately. For each direction and pe
 - Show current/as-of points balance, earned, redeemed, adjusted and expired where applicable, last redemption/activity, large balances, and trends when history supports them.
 - Show points *awarded by program*, but do not attribute the **remaining shared balance** to a program by default.
 - Authorized employee-level balances and group distributions are subject to field/organizational permissions.
+- Provide the closing balance over time, employee-level transaction history, awards by program and balances by department. Include earlier postings in the opening balance, apply refunds and adjustments on their posting dates, and carry the closing balance forward through observed intervals without postings.
 - Exceptional FIFO and taxable-benefit reporting is handled separately using values **already calculated by the platform**; do not burden ordinary balance measures with FIFO allocation logic.
 
 ### O1. Order Activity and Timeline
@@ -154,10 +160,12 @@ Report sending and receiving participation separately. For each direction and pe
 - Only administrators with access to the underlying report may see monetary order values, including unit prices, individual order totals, and aggregates. Apply this field rule to queries, dashboards, order details, saved views, scheduled deliveries, and exports. Employees and managers can still see points spent and item quantities within their authorized scope.
 - Permit program owners to drill down to authorized order details including items, submitted/processing/shipped/delivered dates, tracking where captured, and exceptions.
 - Restrict shipping addresses, internal notes, and other sensitive data independently of ordinary order-status visibility.
+- Summarize orders, units and distinct redeemers by submission month. A fulfillment-status selection opens the matching orders. Order detail distinguishes ordered and shipped quantities for each item, including partial shipments.
 
 ### O2. Fulfillment Exceptions and Performance
 
 - Investigate delayed, failed, canceled, or aging orders; show current status and event chronology where available.
+- Include recorded exceptions, failed and canceled orders, and open orders meeting a configurable age threshold. The POC starts at seven days. Count flagged orders by status and allow the investigator to open the corresponding order timeline.
 - Advanced exception dashboards, service levels, and proactive alerts are later enhancements; initial order-status investigation is in scope.
 - Redemption activity (what was purchased) and fulfillment (whether it arrived) remain separately measurable.
 
@@ -169,6 +177,7 @@ Report sending and receiving participation separately. For each direction and pe
 - **Program-first view:** points awarded through a program broken down by funding bank, sender, time, and authorized organizational dimensions.
 - The approved recognition transaction must support attribution to the actual funding bank and program. Do not assign an entire shared bank's remaining balance to each program it funds, or double-count across programs.
 - Pending requests, if displayed, are **potential commitments** separate from actual issued/approved utilization.
+- Calculate each daily closing balance from that bank’s signed postings through the UTC day. Carry balances through observed days without postings. The funding report identifies the bank ledger entries behind the balance and the programs and senders behind spending. Overview and funding exports identify the bank by name and ID for both series.
 
 ### I1. Recognition Status, Approval History, and Investigation
 
@@ -185,6 +194,7 @@ Report sending and receiving participation separately. For each direction and pe
 - Distinguish points funding/awards, employee points liabilities, redemptions, and fulfillment costs; do not presume their accounting values are interchangeable.
 - Provide specialized FIFO/taxable-benefit output only to customers using that functionality. Reuse platform-calculated allocations and taxable values, with employee, award, program, and transaction context, rather than recalculating tax treatment in generic reports.
 - Financial export and reconciliation requirements may warrant additional restricted columns and permissions.
+- Compare funding cost, liability released and taxable benefit by award program. Each allocation identifies the source calculation, award and redemption transactions, employee, program and jurisdiction. Group allocations by redemption and count retail value and fulfillment cost once per order. In the POC, Cedar Global enables this extension for the administrator with the required report and field grants.
 
 ## 6. Shared reporting capabilities
 
@@ -198,6 +208,13 @@ Report sending and receiving participation separately. For each direction and pe
 | S6 | Curated reports, dashboards, detailed drill-down, and exports use consistent business metric definitions, status rules, and period boundaries. |
 | S7 | Outputs indicate effective reporting filters and, where relevant, data-as-of time and measure definition so discrepancies can be investigated. |
 | S8 | Multi-tenant isolation and personal-data privacy must apply at query, detail, and export levels, including scheduled outputs. Every overview measure and trend inherits its source report’s permissions. Recheck current access when generating an output and before serving a download. |
+| S9 | Charts must remain readable and usable at phone, tablet and desktop widths. Resizing a chart preserves its measurements, units, series, selected scope and available actions. |
+
+### Reading and using charts
+
+- Trends identify the time interval and unit. Recognition and order timelines count events by approval and submission respectively. Wallet trends report closing points by day or month. Daily login, funding and comparison trends expose the date and value being inspected.
+- When comparing periods, identify both series and use the same value scale. For an employee-attribute breakdown, use a common scale across groups for the same measure. Include values present in either authorized period and identify employees with an unassigned attribute. A chart export identifies each group, period and value.
+- On narrow cards, keep axis values, endpoint dates, legends and series distinguishable. Preserve marker proportions, the relative lengths of bars, and the shares of a distribution. Values and category labels must remain associated when space is limited. In detailed trends that support interval inspection, users can select a reading with the keyboard. Selecting an overview chart or group still opens its authorized report.
 
 ### Reporting periods and delivery
 
@@ -205,6 +222,9 @@ Report sending and receiving participation separately. For each direction and pe
 - A full calendar month compares with the preceding month. Month-to-date compares through the corresponding day of the preceding month, year-to-date with the corresponding prior-year interval, and a custom or rolling window with the immediately preceding equal-length interval unless a custom comparison is supplied.
 - Last 7, 30 and 90 days include the UTC run date. Each scheduled run resolves the preset again. A custom comparison retains its explicit dates. Report data availability through the source snapshot and distinguish unavailable values from observed zeros.
 - Saved views and daily or weekly UTC schedules retain the report or overview, applicable filters, employee attributes, selected detail, fields and comparison. A schedule can be paused or run on demand. Report CSVs include authorized summary measures and all matching detail records for the selected fields. Recognition activity also supports a recipient-level extract with stable recognition IDs, recipient points, timestamps, tags and permitted message content.
+- Owners can reopen, rename and delete saved views, and rename, pause, resume, run or delete schedules. Each schedule keeps its own copy of the report settings and runs with its creator’s current grants. In the POC, a missed recurring schedule produces one catch-up delivery when processing resumes.
+- The delivery history identifies queued, running, ready, failed and expired exports. The POC delivers a notification to the customer and persona’s inbox and makes its download link valid for 24 hours after completion. A grant change can make a saved selection or earlier download unavailable.
+- With overlapping reporting and comparison dates, a matching recipient record appears once per applicable period with its period identified. Count distinct recognition IDs within each period to reconcile event totals.
 
 ### Organization, team and individual detail
 
@@ -260,6 +280,11 @@ The named employees, dates and expected counts below refer to the synthetic POC 
 22. **Login visibility.** For Harbor Health in October 2026, the North manager’s authorized history includes the transferring employee’s October 15 sign-in and excludes sign-ins after the October 16 transfer. Employee e09’s personal history has 7 October sign-ins, most recently October 28 at 08:00 UTC. Downloaded and scheduled results obey the same scope.
 23. **Overview login reconciliation.** In Harbor Health for October versus September 2026, the admin has 244 versus 234 successful sign-ins, 35 versus 34 distinct users and 5 versus 5 assigned employees without a login. The overview and U1 must agree on each measure and both daily series, including under a manager or personal grant, a custom comparison and a Clinical service grouping. Revoking U1 removes login measures and detail from the overview and subsequent deliveries.
 24. **No-login membership.** The October Harbor Health admin result contains exactly e07, e14, e21, e28 and e35. The North manager’s result contains e07 and e14. Employee e09’s October result is empty. With October 1 as the reporting window and the full month as the comparison, e09’s personal result contains e09 with zero current sign-ins and seven comparison sign-ins. The list must reconcile with the current count after changes to organization, attributes, team or dates. Saved views and scheduled CSVs preserve the selection under current grants.
+25. **Responsive charts.** At 320 and 768 pixels of viewport width, inspect the recognition and order timelines, comparison and funding trends, wallet balances, category bars, award activity and award status. Axis labels and endpoint dates are legible and fit the chart. A selected marker stays circular and the award status shares retain their proportions. On a wider screen the same selection yields the same readings. With comparison enabled, inspect a day, open the report and verify the applicable values and dates against its CSV.
+26. **Milestone reconciliation.** At Harbor Health’s November 10 snapshot, the 13 awards comprise 4 upcoming, 5 outstanding, 3 redeemed and 1 expired. The redemption rate is 3 of 9 (33.33%). The 30-, 60- and 90-day lists contain 1, 2 and 3 awards respectively. The outstanding list includes the failed notification and excludes the redeemed award awaiting shipment.
+27. **Budget and attribute drill-through.** For Harbor Health’s administrator, compare October 2026 with September 1–21. Total remaining budget is 95,175 versus 86,125 points. Verify the Shared Recognition Fund’s October 31 closing balance of 56,450 points in the overview, funding report and CSV. For an overview measure grouped by Clinical service, opening Outpatient retains that group and both windows, and its CSV readings reconcile with the overview group.
+28. **Customer and delivery isolation.** Save a filtered overview, schedule it and export it. Change customer and role and verify that each workspace lists only its own items. Return as the original owner and verify the saved settings. Run a rolling schedule on two different UTC dates and verify that the reporting window advances, an explicit custom comparison stays fixed, and each delivery obeys the owner’s current grants.
+29. **Orders and restricted finance.** In Summit Retail, the admin sees 10 orders, 14 ordered units and 9 distinct redeemers across the sample history. The partial shipment accounts for 2 of its order’s 5 units. In Cedar Global, two platform allocations reconcile to 120 points, $0.98 in funding cost, $1.09 in liability released and $1.32 in taxable benefit. Count the associated order’s retail value once. Switching to a personal order view exposes only the employee’s authorized quantities and points.
 
 ## 8. Open product/data validation decisions
 
