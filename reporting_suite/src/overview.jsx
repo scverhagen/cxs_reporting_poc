@@ -258,7 +258,7 @@ function BudgetOverview({ banks, previous, prior, openBank }) {
                 aria-hidden="true"
               >
                 <div
-                  className="h-full rounded-full bg-teal-600"
+                  className="h-full rounded-full bg-[var(--secondary-ink)]"
                   style={{
                     width:
                       Math.max(
@@ -440,7 +440,7 @@ export function Overview({
           <Timeline
             title="Orders over time"
             unit="Orders submitted"
-            color="#158273"
+            color="var(--secondary-ink)"
             events={orderRows.map((o) => ({ at: o.submitted_at }))}
             start={start}
             end={end > asOf ? asOf : end}

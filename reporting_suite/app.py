@@ -369,6 +369,7 @@ class Handler(BaseHTTPRequestHandler):
                             "SELECT value FROM dataset_metadata WHERE key='data_as_of'"
                         ).fetchone()[0],
                     )
+                    workspace.customer_branding(result["customers"])
                     for customer in result["customers"]:
                         actor = Permissions(db, customer["tenant_id"], owner)
                         customer.update(
@@ -388,6 +389,8 @@ class Handler(BaseHTTPRequestHandler):
                         result = snapshot(
                             db, tenant, owner, query.get("tab", [None])[0]
                         )
+                    elif method == "POST" and url.path == "/api/branding":
+                        result = workspace.save_branding(tenant, owner, self.read_json())
                     elif method == "GET" and url.path == "/api/workspace":
                         with workspace.connection(workspace.STATE) as state:
                             result = workspace.library(state, tenant, db, owner)

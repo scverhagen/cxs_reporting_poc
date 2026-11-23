@@ -1,3 +1,4 @@
+import { BrandEditor, ThemePicker, useAppearance } from "./appearance";
 import { employeeDirectory, employeePath } from "./hierarchy";
 import { TeamReport, teamPageTitle } from "./team-report";
 import {
@@ -232,6 +233,7 @@ function App() {
   const activeCustomer = config?.customers.find(
     (c) => c.tenant_id === customer,
   );
+  const appearance = useAppearance(activeCustomer?.branding);
   const role = config?.role;
   const tabs = activeCustomer?.tabs;
   const allowed = activeCustomer?.overview_available
@@ -649,7 +651,7 @@ function App() {
             <PanelsTopLeft />
           </Button>
           <div className="flex items-center gap-2 text-base font-semibold tracking-tight">
-            <span className="grid size-8 place-items-center rounded-lg bg-primary text-white">
+            <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
               <ChartNoAxesCombined size={18} />
             </span>
             CXS Recognize
@@ -672,7 +674,7 @@ function App() {
           <aside
             className={
               (mobileNav ? "flex" : "hidden") +
-              " shrink-0 flex-col border-b bg-white p-4 lg:sticky lg:top-14 lg:flex lg:h-[calc(100dvh-3.5rem)] lg:w-60 lg:overflow-y-auto lg:border-r lg:border-b-0"
+              " shrink-0 flex-col border-b bg-card p-4 lg:sticky lg:top-14 lg:flex lg:h-[calc(100dvh-3.5rem)] lg:w-60 lg:overflow-y-auto lg:border-r lg:border-b-0"
             }
           >
             {config && (
@@ -706,6 +708,20 @@ function App() {
                 </div>
               </fieldset>
             )}
+            <div className="mt-4 grid gap-2">
+              <ThemePicker {...appearance} />
+              {role === "admin" && activeCustomer?.branding && !switching && (
+                <BrandEditor
+                  key={customer}
+                  customer={activeCustomer}
+                  onSaved={(branding) => setConfig((current) => ({
+                    ...current,
+                    customers: current.customers.map((entry) =>
+                      entry.tenant_id === customer ? { ...entry, branding } : entry),
+                  }))}
+                />
+              )}
+            </div>
             <Separator className="my-5" />
             <nav aria-label="Reports" className="grid gap-1">
               {links(["overview", "teams"])}

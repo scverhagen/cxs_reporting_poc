@@ -26,6 +26,16 @@ from permissions import OVERVIEW_SOURCES, Permissions, Problem
 
 WAKE = threading.Event()
 
+# Starting palettes for the synthetic tenants. Admin edits live in workspace state.
+DEFAULT_BRAND = ("#305b9a", "#167668")
+TENANT_PALETTES = {
+    "meridian": DEFAULT_BRAND,
+    "harbor": ("#006e70", "#84588c"),
+    "summit": ("#9a4226", "#336d57"),
+    "atlas": ("#375075", "#a15a13"),
+    "cedar": ("#663d80", "#447449"),
+}
+
 
 @contextmanager
 def connection(path):
@@ -40,6 +50,9 @@ def initialize():
     with connection(STATE) as db:
         db.executescript("""
             PRAGMA journal_mode=WAL;
+            CREATE TABLE IF NOT EXISTS tenant_branding (
+                tenant TEXT PRIMARY KEY, primary_color TEXT NOT NULL, secondary_color TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS items (
                 id TEXT PRIMARY KEY, tenant TEXT NOT NULL, owner TEXT NOT NULL,
                 kind TEXT NOT NULL, name TEXT NOT NULL, view TEXT NOT NULL,
@@ -57,6 +70,31 @@ def initialize():
             );
             CREATE INDEX IF NOT EXISTS jobs_scope ON jobs(tenant,owner,created);
         """)
+
+
+def customer_branding(customers):
+    with connection(STATE) as db:
+        palettes = {tenant: (primary, secondary) for tenant, primary, secondary in
+                    db.execute("SELECT tenant, primary_color, secondary_color FROM tenant_branding")}
+    for customer in customers:
+        tenant = customer["tenant_id"]
+        primary, secondary = palettes.get(tenant, TENANT_PALETTES.get(tenant, DEFAULT_BRAND))
+        customer["branding"] = {"primary": primary, "secondary": secondary}
+
+
+def save_branding(tenant, owner, payload):
+    if owner != "admin":
+        raise Problem(403, "Only admins can change customer colors.")
+    colors = [payload.get(key) for key in ("primary", "secondary")]
+    if not all(isinstance(c, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", c) for c in colors):
+        raise Problem(400, "Choose two six-digit hex colors.")
+    primary, secondary = (color.lower() for color in colors)
+    with connection(STATE) as db:
+        db.execute("""INSERT INTO tenant_branding VALUES (?, ?, ?)
+                      ON CONFLICT(tenant) DO UPDATE SET primary_color=excluded.primary_color,
+                                                        secondary_color=excluded.secondary_color""",
+                   (tenant, primary, secondary))
+    return {"primary": primary, "secondary": secondary}
 
 
 def access(source, tenant, tab, owner, version=None):

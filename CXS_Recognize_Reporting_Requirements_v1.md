@@ -209,6 +209,15 @@ Report sending and receiving participation separately. For each direction and pe
 | S7 | Outputs indicate effective reporting filters and, where relevant, data-as-of time and measure definition so discrepancies can be investigated. |
 | S8 | Multi-tenant isolation and personal-data privacy must apply at query, detail, and export levels, including scheduled outputs. Every overview measure and trend inherits its source report’s permissions. Recheck current access when generating an output and before serving a download. |
 | S9 | Charts must remain readable and usable at phone, tablet and desktop widths. Resizing a chart preserves its measurements, units, series, selected scope and available actions. |
+| S10 | Apply the selected customer’s primary and secondary colors throughout the reporting suite and support light, dark and device-selected appearance. |
+
+### Tenant branding and appearance
+
+Each customer has two brand colors. An administrator can set the primary and secondary colors for the selected customer. All reporting roles for that customer use the saved palette. The five POC customers have distinct starting palettes, and a customer without a configured palette uses the suite defaults.
+
+The primary color identifies main actions and the current chart series. The secondary color identifies supporting actions or comparison series. Navigation, report controls, chart labels, tables and dialogs remain readable in both light and dark mode, including when a customer chooses very light or very dark colors. Period labels and series patterns continue to distinguish current and comparison readings.
+
+Each viewer can choose Light, Dark or System. System follows the device preference and is the initial setting. An explicit selection persists in the browser across reloads and customer or role changes. Changing appearance preserves the open report, its filters, its comparison and its access rules. Saved report definitions, scheduled runs and CSV content depend on the reporting selections and grants.
 
 ### Reading and using charts
 
@@ -285,6 +294,7 @@ The named employees, dates and expected counts below refer to the synthetic POC 
 27. **Budget and attribute drill-through.** For Harbor Health’s administrator, compare October 2026 with September 1–21. Total remaining budget is 95,175 versus 86,125 points. Verify the Shared Recognition Fund’s October 31 closing balance of 56,450 points in the overview, funding report and CSV. For an overview measure grouped by Clinical service, opening Outpatient retains that group and both windows, and its CSV readings reconcile with the overview group.
 28. **Customer and delivery isolation.** Save a filtered overview, schedule it and export it. Change customer and role and verify that each workspace lists only its own items. Return as the original owner and verify the saved settings. Run a rolling schedule on two different UTC dates and verify that the reporting window advances, an explicit custom comparison stays fixed, and each delivery obeys the owner’s current grants.
 29. **Orders and restricted finance.** In Summit Retail, the admin sees 10 orders, 14 ordered units and 9 distinct redeemers across the sample history. The partial shipment accounts for 2 of its order’s 5 units. In Cedar Global, two platform allocations reconcile to 120 points, $0.98 in funding cost, $1.09 in liability released and $1.32 in taxable benefit. Count the associated order’s retail value once. Switching to a personal order view exposes only the employee’s authorized quantities and points.
+30. **Tenant branding.** As a Harbor Health admin, save two colors. Verify them on the overview, a report with a comparison, and a workspace dialog. Switch to another customer and verify its own palette. Return to Harbor Health as a manager or employee and verify the saved colors and role-appropriate reports. Only the admin can save new colors. Switch between Light, Dark and System with a report open, then reload and verify the appearance preference. Both series, labels and controls remain legible and the report readings agree across modes.
 
 ## 8. Open product/data validation decisions
 

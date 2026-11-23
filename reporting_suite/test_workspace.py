@@ -41,6 +41,26 @@ class WorkspaceTests(unittest.TestCase):
             self.source, tenant, dict(action=action, view=view, name="Sample", **args)
         )
 
+    def test_tenant_branding_persists_and_requires_admin(self):
+        customers = [{"tenant_id": tenant} for tenant in ws.TENANT_PALETTES]
+        ws.customer_branding(customers)
+        original = {c["tenant_id"]: c["branding"] for c in customers}
+        self.assertEqual(len({tuple(b.values()) for b in original.values()}), 5)
+        brand = {"primary": "#111111", "secondary": "#eeeeee"}
+        for role in ("employee", "manager"):
+            with self.assertRaises(ws.Problem) as denied:
+                ws.save_branding("harbor", role, brand)
+            self.assertEqual(denied.exception.status, 403)
+        ws.save_branding("harbor", "admin", brand)
+        for invalid in ({}, {**brand, "primary": "red"}, {**brand, "secondary": None}):
+            with self.assertRaises(ws.Problem) as rejected:
+                ws.save_branding("harbor", "admin", invalid)
+            self.assertEqual(rejected.exception.status, 400)
+        ws.initialize()
+        ws.customer_branding(customers)
+        self.assertEqual({c["tenant_id"]: c["branding"] for c in customers},
+                         {**original, "harbor": brand})
+
     def test_recipient_exports_and_customer_switch(self):
         manifest = json.loads(DATABASE.with_suffix(".manifest.json").read_text())
         for scenario in manifest["scenarios"]:

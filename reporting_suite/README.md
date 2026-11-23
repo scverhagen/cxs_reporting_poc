@@ -55,6 +55,10 @@ Milestone reports use the dataset snapshot date. Awards overview counts entitlem
 Milestone program, type, and organization filters apply to all three milestone reports. Organization uses the employee's assignment at eligibility for past awards and the snapshot assignment for upcoming awards. The customer selector retains the report and its horizon or aging window while refreshing customer-specific filters. Harbor Health's November 10, 2026 snapshot has four upcoming, five outstanding, three redeemed, and one expired entitlement.
 
 
+### Customer appearance
+
+In the sidebar, choose **Appearance** to use Light, Dark or the system setting. The browser remembers this choice across customers and roles. As an admin, open **Brand colors**, choose a primary and secondary color, then select **Save colors**. The pair is stored for that customer and applies to all three demo roles. The suite adjusts accent brightness for readability in each mode.
+
 ### Full curated catalog
 
 The workspace includes the overview, a managerial hierarchy report, and the 13 curated report families. Participation is a dedicated view, and milestone overview and upcoming eligibility have separate pages. All reports are accessible from the sidebar and report finder when enabled for the selected customer.

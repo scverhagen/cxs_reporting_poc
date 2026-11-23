@@ -44,13 +44,13 @@ function AwardTrend({ rows, asOf }) {
       >
         <defs>
           <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-            <stop stopColor="#368ef7" stopOpacity=".18" />
-            <stop offset="1" stopColor="#368ef7" stopOpacity=".02" />
+            <stop stopColor="var(--primary)" stopOpacity=".18" />
+            <stop offset="1" stopColor="var(--primary)" stopOpacity=".02" />
           </linearGradient>
         </defs>
         {[0, top / 2, top].map((n) => (
           <g key={n}>
-            <path d={`M${left} ${y(n)}H${right}`} stroke="#ededed" />
+            <path d={`M${left} ${y(n)}H${right}`} stroke="var(--border)" />
             <text x={left - 6} y={y(n) + 4} textAnchor="end">
               {n}
             </text>
@@ -60,7 +60,7 @@ function AwardTrend({ rows, asOf }) {
           const d = values
             .map((n, i) => `${i ? "L" : "M"}${x(i)} ${y(n)}`)
             .join(" ");
-          const color = j ? "#1c8873" : "#3185f5";
+          const color = j ? "var(--secondary-ink)" : "var(--primary)";
           return (
             <g key={j}>
               {j === 0 && (
@@ -82,7 +82,7 @@ function AwardTrend({ rows, asOf }) {
                   cx={x(i)}
                   cy={y(n)}
                   r="3"
-                  fill="white"
+                  fill="var(--card)"
                   stroke={color}
                   strokeWidth="2"
                 >
@@ -114,7 +114,7 @@ function Overview({ rows, data, asOf, drill }) {
     (state) => rows.filter((r) => r.entitlement_state === state).length,
   );
   const eligible = rows.length - states[0];
-  const colors = ["#3787f5", "#74c8ed", "#208876", "#c4cbd6"];
+  const colors = ["var(--primary)", "var(--secondary-ink)", "#b97e3f", "var(--muted-ink)"];
   let stop = 0;
   const slices = states.map((n, i) => {
     const start = stop;
@@ -175,7 +175,7 @@ function Overview({ rows, data, asOf, drill }) {
                     style={{
                       background: rows.length
                         ? "conic-gradient(from -90deg," + slices.join(",") + ")"
-                        : "#eee",
+                        : "var(--muted)",
                     }}
                   >
                     <strong className="grid size-20 place-items-center rounded-full bg-card text-3xl font-semibold tabular-nums">
@@ -219,7 +219,7 @@ function Overview({ rows, data, asOf, drill }) {
                   >
                     <b>{n}</b>
                     <span
-                      className="w-3/5 max-w-14 rounded-t bg-blue-500"
+                      className="w-3/5 max-w-14 rounded-t bg-primary"
                       style={{ height: (89 * n) / (states[0] || 1) }}
                     />
                     <span className="text-xs">
@@ -251,7 +251,7 @@ function Overview({ rows, data, asOf, drill }) {
                   <span className="w-20 text-left">{a} days</span>
                   <span className="h-2 flex-1 rounded bg-muted">
                     <i
-                      className="block h-full rounded bg-blue-400"
+                      className="block h-full rounded bg-primary"
                       style={{ width: (100 * n) / (states[1] || 1) + "%" }}
                     />
                   </span>

@@ -4,8 +4,8 @@ import { GridTable, Panel } from "./shared";
 import { useView } from "./view-state";
 
 const colors = [
-  "#356ad1",
-  "#158273",
+  "var(--primary)",
+  "var(--secondary-ink)",
   "#8462ad",
   "#cd7738",
   "#6a8eac",
@@ -190,15 +190,15 @@ function BalanceSeries({ rows, index, lower, upper, title }) {
         <>
           <defs>
             <linearGradient id={gradient} x1="0" x2="0" y1="0" y2="1">
-              <stop stopColor="#4e88db" stopOpacity=".28" />
-              <stop offset="1" stopColor="#4e88db" stopOpacity=".03" />
+              <stop stopColor="var(--primary)" stopOpacity=".28" />
+              <stop offset="1" stopColor="var(--primary)" stopOpacity=".03" />
             </linearGradient>
           </defs>
           {[upper, (upper + lower) / 2, lower].map((tick) => (
             <path
               key={tick}
               d={`M${inset} ${y(tick)}h${width}`}
-              stroke="#e2e7ed"
+              stroke="var(--border)"
               strokeDasharray="3 3"
             />
           ))}
@@ -216,7 +216,7 @@ function BalanceSeries({ rows, index, lower, upper, title }) {
           />
           <path
             d={`M${x(index)} ${inset}V${bottom}`}
-            stroke="#929eac"
+            stroke="var(--muted-ink)"
             strokeDasharray="3 3"
           />
           {rows.map(
@@ -227,7 +227,7 @@ function BalanceSeries({ rows, index, lower, upper, title }) {
                   cx={x(i)}
                   cy={y(n)}
                   r={i === index ? 4.5 : 2.5}
-                  stroke="white"
+                  stroke="var(--card)"
                   fill={colors[0]}
                 />
               ),

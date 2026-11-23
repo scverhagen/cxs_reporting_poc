@@ -75,7 +75,7 @@ export function DateField({ name, value, onChange, max }) {
         min="2026-01-01"
         max={max}
         onChange={(e) => onChange(e.target.value)}
-        className="w-auto bg-white text-foreground"
+        className="w-auto bg-card text-foreground"
       />
     </label>
   );
@@ -89,7 +89,7 @@ export function Search({ value, onChange, placeholder }) {
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="max-w-sm bg-white"
+      className="max-w-sm bg-card"
     />
   );
 }

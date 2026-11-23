@@ -34,7 +34,7 @@ export function Filter({ label, value, onChange, options }) {
         aria-label={label}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-white text-foreground"
+        className="bg-card text-foreground"
       >
         {options.map(([id, name]) => (
           <NativeSelectOption key={id} value={id}>

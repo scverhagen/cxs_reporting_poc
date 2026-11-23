@@ -56,7 +56,7 @@ export function Bars({ items, onSelect }) {
           </div>
           <div className="h-2 rounded bg-muted">
             <i
-              className="block h-full rounded bg-blue-500"
+              className="block h-full rounded bg-primary"
               style={{ width: (100 * n) / items[0][1] + "%" }}
             />
           </div>
@@ -71,7 +71,7 @@ export function Timeline({
   end,
   title = "Activity timeline",
   unit = "Approved events",
-  color = "#3787f5",
+  color = "var(--primary)",
 }) {
   const { output } = useView();
   const { ref, width, height } = usePlotSize();
@@ -131,7 +131,7 @@ export function Timeline({
             <text x={left - 6} y={y(n) + 4} textAnchor="end">
               {n}
             </text>
-            <path d={`M${left} ${y(n)}H${right}`} stroke="#e4e4e7" />
+            <path d={`M${left} ${y(n)}H${right}`} stroke="var(--border)" />
           </g>
         ))}
         {counts.map((n, i) => (
