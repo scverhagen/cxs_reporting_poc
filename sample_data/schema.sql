@@ -16,12 +16,17 @@ CREATE TABLE employees (
   PRIMARY KEY (tenant_id, employee_id), FOREIGN KEY (tenant_id) REFERENCES tenants
 );
 -- One successful interactive authentication per source event ID.
-CREATE TABLE user_logins (
+CREATE TABLE authentication_events (
+  login_method TEXT NOT NULL CHECK (login_method IN ('password', 'sso', 'one_time_pac')),
   tenant_id TEXT NOT NULL, login_id TEXT NOT NULL, employee_id TEXT NOT NULL, occurred_at TEXT NOT NULL,
   PRIMARY KEY (tenant_id, login_id),
   FOREIGN KEY (tenant_id, employee_id) REFERENCES employees(tenant_id, employee_id)
 );
-CREATE INDEX user_logins_by_date ON user_logins(tenant_id, occurred_at, employee_id);
+CREATE INDEX authentication_events_by_date ON authentication_events(tenant_id, occurred_at, employee_id);
+-- U1 uses this same event population for totals, trends, latest login and drill-throughs.
+CREATE VIEW user_logins AS
+SELECT tenant_id, login_id, employee_id, occurred_at FROM authentication_events
+WHERE login_method <> 'one_time_pac';
 -- All intervals are [valid_from, valid_to); NULL means no known end.
 CREATE TABLE employee_history (
   tenant_id TEXT NOT NULL, history_id TEXT NOT NULL, employee_id TEXT NOT NULL,

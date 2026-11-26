@@ -152,10 +152,11 @@ export function UserLogins({
                   : [label],
               ),
             ]}
-            rows={branches.map(({ data: team, label }) => {
+            rows={branches.flatMap(({ data: team, label }) => {
               const currentTeam = read(team, current),
                 priorTeam = read(team, previous);
-              return [
+              if (!currentTeam?.employees.size && !priorTeam?.employees.size) return [];
+              return [[
                 label,
                 ...loginMeasures.flatMap(([key]) => {
                   const value = currentTeam?.[key] ?? "—";
@@ -176,7 +177,7 @@ export function UserLogins({
                     </div>,
                   ];
                 }),
-              ];
+              ]];
             })}
             empty="No direct reports match these dates and filters."
           />

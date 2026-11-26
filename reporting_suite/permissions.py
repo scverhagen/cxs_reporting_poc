@@ -64,6 +64,7 @@ def reporting_paths(assignments):
 
 class Permissions:
     def __init__(self, db, tenant, owner):
+        self._login_exclusions = None
         person = db.execute(
             """SELECT u.employee_id,e.display_name FROM reporting_users u
             JOIN employees e USING(tenant_id,employee_id)
@@ -150,6 +151,28 @@ class Permissions:
                 or (owner == "manager" and r[1] in allowed_orgs)
             ]
 
+    def login_exclusions(self, db, tenant):
+        if self._login_exclusions is None:
+            pac_only, exempt_days = set(), []
+            # Older synthetic datasets contain only qualifying sign-ins.
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='authentication_events'").fetchone():
+                for employee, day, has_regular in db.execute("""
+                    WITH methods AS (
+                        SELECT employee_id, occurred_at, login_method,
+                               MAX(login_method <> 'one_time_pac') OVER (PARTITION BY employee_id) AS has_regular
+                        FROM authentication_events WHERE tenant_id=?
+                        AND occurred_at <= (SELECT value FROM dataset_metadata WHERE key='data_as_of')
+                    )
+                    SELECT DISTINCT employee_id, substr(occurred_at,1,10), has_regular
+                    FROM methods WHERE login_method='one_time_pac'
+                """, (tenant,)):
+                    if not has_regular:
+                        pac_only.add(employee)
+                    elif self.owner == "admin" or self.allows("U1", employee, None, day):
+                        exempt_days.append({"employee_id": employee, "day": day})
+            self._login_exclusions = pac_only, exempt_days
+        return self._login_exclusions
+
     def assignment_history(self, db, tenant, tab):
         rules = self.rules.get(REPORTS.get(tab), [])
         orgs = {org for _, group in rules for org in (group or [])}
@@ -162,6 +185,9 @@ class Permissions:
             (self.owner == "employee" and row["employee_id"] == self.employee) or
             (self.owner == "manager" and row["org_id"] in orgs)
         ]
+        if tab == "logins":
+            excluded, _ = self.login_exclusions(db, tenant)
+            assignments = [h for h in assignments if h["employee_id"] not in excluded]
         # Build paths after applying the grant. An unseen supervisor never enters the directory.
         return reporting_paths(assignments)
 
@@ -180,6 +206,9 @@ class Permissions:
         fields = [
             f for f in self.fields if not legacy or not f.startswith("attribute:")
         ]
+        if tab == "logins":
+            # Old login and overview files may identify PAC-only employees.
+            fields = [*fields, "login-population:exclude-pac-only"]
         if self.owner == "admin":
             return json.dumps(fields)
         permissions = [

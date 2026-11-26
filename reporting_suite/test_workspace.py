@@ -1366,8 +1366,11 @@ class WorkspaceTests(unittest.TestCase):
                 self.assertNotIn("logins", unrelated["catalog"])
         admin = export("admin", view())
         for row in (["Successful logins", "244", "234", "+10"], ["Users logged in", "35", "34", "+1"],
-                    ["Users without a login", "5", "5", "0"], ["Gray Demo Harbor", "0", "—", "0", "—"]):
+                    ["Users without a login", "4", "4", "0"]):
             self.assertIn(row, admin)
+        self.assertFalse(any("Gray Demo Harbor" in row for row in admin))
+        self.assertNotIn("e07", snapshot(self.source, "harbor", "admin", "logins")["people"])
+        self.assertIn("e07", snapshot(self.source, "harbor", "admin", "activity")["people"])
         personal = export("employee", view())
         self.assertIn(["Indigo Demo Harbor", "7", "2026-10-28 08:00 UTC", "8", "2026-09-30 08:00 UTC"], personal)
         self.assertEqual(sum(r[:1] == ["Current"] for r in personal), 7)
@@ -1397,7 +1400,7 @@ class WorkspaceTests(unittest.TestCase):
         custom = dict(period="custom", start="2026-10-15", end="2026-10-20",
                       compare="custom", comparisonStart="2026-10-01", comparisonEnd="2026-10-04",
                       org="engineering", **{"attribute:clinical_service": "Acute care"})
-        for owner, expected in (("admin", ["244", "35", "5"]), ("manager", ["105", "15", "2"]),
+        for owner, expected in (("admin", ["244", "35", "4"]), ("manager", ["105", "15", "1"]),
                                 ("employee", ["7", "1", "0"])):
             for filters in (october, custom):
                 overview = export("overview", owner, filters)
@@ -1455,13 +1458,15 @@ class WorkspaceTests(unittest.TestCase):
             return {r[1]: r for r in employees}
 
         october = dict(period="2026-10", compare="previous")
-        for role, expected in (("admin", {"e07", "e14", "e21", "e28", "e35"}),
-                               ("manager", {"e07", "e14"}), ("employee", set())):
+        for role, expected in (("admin", {"e14", "e21", "e28", "e35"}),
+                               ("manager", {"e14"}), ("employee", set())):
             self.assertEqual(set(compare(role, october)), expected)
 
         # Comparison logins describe the current list, even for an employee active in October.
         day = dict(period="custom", start="2026-10-01", end="2026-10-01", compare="custom",
                    comparisonStart="2026-10-01", comparisonEnd="2026-10-31")
+        pac_day = {**day, "start": "2026-10-31", "end": "2026-10-31"}
+        self.assertEqual(compare("employee", pac_day), {})
         personal = compare("employee", day)
         self.assertEqual(personal["e09"][2:], ["0", "7", "2026-10-28 08:00 UTC"])
         self.assertNotIn("e20", compare("admin", day))  # hired October 16

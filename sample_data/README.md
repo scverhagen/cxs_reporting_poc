@@ -42,7 +42,7 @@ Generate the database once after cloning. Subsequent runs replace the generated 
 | --- | --- |
 | `reporting_poc.sqlite` | Ready-to-query database containing all five tenants. |
 | `reporting_poc.manifest.json` | Watermark, scenario descriptions, row counts, and known October results. |
-| `schema.sql` | Tables, composite tenant foreign keys, indexes, and seven shared semantic views. |
+| `schema.sql` | Tables, composite tenant foreign keys, indexes, and shared semantic views. |
 | `generate.py` | Deterministic stdlib-only data builder. |
 | `queries.sql` | Runnable examples for all thirteen report families, plus history, exports, and security fixtures. |
 | `verify.py` | Fixture invariants and independent cross-lifecycle reconciliation checks. |
@@ -102,7 +102,7 @@ across tenants. Joins that omit `tenant_id` produce incorrect results and can di
 | People and history | `employees`: employee; `employee_history`: dated org/attribute interval; `organizations`: hierarchy node. Attributes include region, location, cost center, employment type, and job level. |
 | Programs and eligibility | `programs`: configured program; `eligibility`: employee/program effective interval, with separate send and receive flags. |
 | Recognition | `recognitions`: event; `recognition_recipients`: event/recipient points and actual bank; `recognition_components`: event/component; `recognition_tags`: event/category-or-value/label. |
-| User logins | `user_logins` records one successful interactive sign-in per customer and source event ID with an employee and UTC timestamp. Includes repeat sign-ins and employees with no sign-ins. |
+| User logins | `authentication_events` records successful password, SSO and one-time-use PAC sign-ins by customer, source event ID, employee and UTC timestamp. The `user_logins` reporting view excludes PAC. In September and October, e07 has only PAC sign-ins and is excluded from login reporting, including no-login counts. Employee e09 has both SSO and PAC, and only the SSO events qualify. |
 | Social and approval | `social_events`: individual like/comment; `approval_events`: chronological action/stage/actor. |
 | Milestones | `milestone_entitlements`: employee entitlement; `milestone_events`: lifecycle transition. No ordinary entitlement credit goes into an employee wallet. |
 | Orders | `orders`: redemption order, linked to entitlement when applicable; `order_items`: order line; `order_events`: status transition; `shipments` and `shipment_items`: shipment and shipped line quantity. |
@@ -112,7 +112,7 @@ across tenants. Joins that omit `tenant_id` produce incorrect results and can di
 | Authorization | `reporting_users`, `report_grants`, `field_grants`: configured roles and explicit grants. `access_cases`: expected allow/deny/redact examples, including expired and revoked-access cases. |
 | Delivery and reconciliation | `saved_views`, `report_schedules`, `export_jobs`, `delivery_events`, `report_runs`: configuration, asynchronous lifecycle, mocked delivery, and equivalent-surface metric snapshots. |
 
-The seven shared views are `v_official_recognition`, `v_employee_balances`, `v_bank_balances`,
+The eight shared views are `user_logins`, `v_official_recognition`, `v_employee_balances`, `v_bank_balances`,
 `v_pending_commitments`, `v_milestone_state`, `v_milestone_nonresponders`, and `v_order_activity`.
 Recognition and order views preaggregate children to preserve their parent grain.
 

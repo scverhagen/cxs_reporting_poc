@@ -2,7 +2,7 @@ import { orgAt } from "./metrics";
 import { within } from "./report-tools";
 
 export const loginMeasures = [
-  ["total", "Successful logins", "Completed interactive sign-ins"],
+  ["total", "Successful logins", "Interactive sign-ins excluding one-time-use PAC"],
   ["users", "Users logged in", "Distinct employees with a sign-in"],
   [
     "inactive",
@@ -21,8 +21,10 @@ export function loginReading(data, range, scope) {
   const end =
     range.end < data.observed_through ? range.end : data.observed_through;
   const employees = new Map();
+  const excluded = new Set(data.catalog.login_excluded_employees);
   for (const h of data.history) {
     if (
+      !excluded.has(h.employee_id) &&
       h.valid_from <= end &&
       (!h.valid_to || h.valid_to > range.start) &&
       (!scope || scope.has(h.org_id))
@@ -41,6 +43,12 @@ export function loginReading(data, range, scope) {
     employee.count++;
     if (!employee.last || event.occurred_at > employee.last)
       employee.last = event.occurred_at;
+  }
+  for (const { employee_id, day } of data.catalog.login_exempt_days ?? []) {
+    if (employees.get(employee_id)?.count === 0 && within(day, range.start, end) &&
+        orgAt(data, employee_id, day, scope)) {
+      employees.delete(employee_id);
+    }
   }
   const users = [...employees.values()].filter((e) => e.count > 0).length;
   return {

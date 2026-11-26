@@ -105,8 +105,14 @@ def seed_tenant(db, profile):
             day = first.isoformat()
             if start <= day and (not end or day < end):
                 for hour in ([8, 14] if (first.day + i) % 4 == 0 else [8]):
-                    put("user_logins", login_id=f"{eid}-{day}-{hour}", employee_id=eid, occurred_at=stamp(day, hour))
+                    put("authentication_events", login_id=f"{eid}-{day}-{hour}", employee_id=eid,
+                        login_method="sso" if i % 2 else "password", occurred_at=stamp(day, hour))
             first += interval
+        # A PAC-only employee and a mixed-method employee in both comparison windows.
+        if i in (7, 9):
+            for day in ("2026-09-30", "2026-10-31"):
+                put("authentication_events", login_id=f"{eid}-pac-{day}", employee_id=eid,
+                    login_method="one_time_pac", occurred_at=stamp(day, 19))
 
     for pid, label, kind, monetary in [
         ("peer", "Everyday Thanks", "recognition", 1), ("spot", "Above and Beyond", "recognition", 1),
@@ -424,7 +430,7 @@ def make_manifest(db):
     for profile in PROFILES:
         tid = profile[0]
         counts = {table: db.execute(f"SELECT COUNT(*) FROM {table} WHERE tenant_id=?", (tid,)).fetchone()[0]
-                  for table in ("employees", "user_logins", "recognitions", "milestone_entitlements", "orders", "employee_points_ledger", "bank_ledger")}
+                  for table in ("employees", "authentication_events", "user_logins", "recognitions", "milestone_entitlements", "orders", "employee_points_ledger", "bank_ledger")}
         october = db.execute("SELECT approved_event_count FROM report_runs WHERE tenant_id=? AND surface='dashboard'", (tid,)).fetchone()[0]
         scenarios.append({"tenant_id": tid, "name": profile[1], "focus": profile[2], "counts": counts,
                           "october_approved_events": october,

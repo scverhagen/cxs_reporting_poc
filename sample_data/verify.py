@@ -35,11 +35,17 @@ def verify(path):
     check(scalar("SELECT COUNT(*) FROM platform_financial_allocations WHERE tenant_id<>'cedar'") == 0,
           "Ordinary programs require no specialized financial allocations")
 
-    zero("""SELECT l.login_id FROM user_logins l WHERE
+    zero("""SELECT l.login_id FROM authentication_events l WHERE
       occurred_at > (SELECT value FROM dataset_metadata WHERE key='data_as_of') OR
       NOT EXISTS (SELECT 1 FROM employee_history h WHERE h.tenant_id=l.tenant_id AND h.employee_id=l.employee_id
         AND h.valid_from<=substr(l.occurred_at,1,10) AND (h.valid_to IS NULL OR h.valid_to>substr(l.occurred_at,1,10)))""",
          "Logins occur within a valid assignment and the snapshot")
+    check(scalar("""SELECT COUNT(*) FROM (
+      SELECT tenant_id FROM authentication_events WHERE login_method='one_time_pac'
+      GROUP BY tenant_id HAVING COUNT(DISTINCT employee_id)=2 AND COUNT(*)=4
+    )""") == 5, "Each customer has PAC-only and mixed-method examples in both periods")
+    zero("""SELECT l.login_id FROM user_logins l JOIN authentication_events a USING(tenant_id,login_id)
+      WHERE a.login_method='one_time_pac'""", "PAC sign-ins are excluded from the reporting population")
     # Exercise every example query, so the delivered queries are directly runnable.
     db.executescript((HERE / "queries.sql").read_text())
     check(True, "All example queries execute")

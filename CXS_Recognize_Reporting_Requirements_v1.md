@@ -1,6 +1,6 @@
 # CXS Recognize — Reporting Modernization Requirements
 
-**Draft v1 · Discovery synthesis November 9, 2026 · Updated November 21, 2026**
+**Draft v1 · Discovery synthesis November 9, 2026 · Updated November 23, 2026**
 
 ## 1. Purpose and problem
 
@@ -72,16 +72,27 @@ A measure or trend leads to the underlying report with the same customer, role, 
 
 ### U1. User Logins
 
-Login reporting requires an explicit U1 grant. Use the successful interactive authentication event ID and UTC timestamp from the customer’s authentication source. Password and SSO sign-ins qualify when the source records them. Exclude failed attempts, token refreshes and passive session activity. Login measures apply across recognition programs.
+Login reporting requires an explicit U1 grant. Use the successful interactive authentication event ID and UTC timestamp from the customer’s authentication source. Password and SSO sign-ins qualify when the source records them. Exclude one-time-use PAC logins even when authentication succeeds. Also exclude failed attempts, token refreshes and passive session activity. Login measures apply across recognition programs.
 
 | Measure | Definition within one observed reporting period |
 | --- | --- |
-| Successful logins | Count distinct successful sign-in events. Repeat sign-ins by one employee contribute separate events. Daily totals use the UTC sign-in date. |
+| Successful logins | Count distinct qualifying sign-in events. Repeat sign-ins by one employee contribute separate events. Daily totals use the UTC sign-in date. |
 | Users logged in | Count distinct employees with at least one qualifying sign-in in scope. Attribute each event to the employee’s authorized organization, team and attributes at sign-in. |
-| Users without a login | Start with distinct employees whose authorized assignment overlaps the observed portion of the period. Count those with zero qualifying sign-ins in that scope. |
+| Users without a login | Start with distinct employees eligible for login reporting whose authorized assignment overlaps the observed portion of the period. Count those with zero qualifying sign-ins in that scope. |
 | Employee login history | For each employee in scope, include login count and latest successful sign-in within each selected period. Individual and personal detail includes the actual sign-in times. |
 
-Within each observed period, users who signed in plus users without a login must equal the distinct assigned population in scope. Calculate this population independently for each period.
+**One-time-use PAC logins.** A PAC event contributes zero sign-ins and never sets the latest login date. An employee whose only recorded sign-ins for the customer through the data snapshot are PAC sign-ins is excluded from login reporting altogether, including the “Users without a login” count and list.
+
+For employees with an authorized assignment in the observed period, apply these rules in order:
+
+| Authentication history | Treatment in the selected period |
+| --- | --- |
+| Only PAC sign-ins through the snapshot | Omit the employee from both login populations, employee history and login hierarchy, even when their PAC sign-in falls outside the selected dates. |
+| At least one qualifying password or SSO sign-in in scope during the period | Count the employee once under “Users logged in.” Use qualifying events for counts, trends and latest login. |
+| Both methods in the employee’s history, with only PAC activity in scope during the period | Omit the employee from both login populations for that period. |
+| No sign-ins in scope during the period, including employees who have never signed in | Include the employee under “Users without a login” unless the PAC-only account rule above applies. |
+
+Evaluate the current and comparison periods independently. In each, users logged in plus users without a login equals the reportable population. The overview, team and individual drill-throughs, saved views, scheduled deliveries and exports use the same rules.
 
 **Employees behind the no-login count.** Return one record per matching employee with name, employee ID and current-period login count. The number of records must equal the overview count, including when it is zero. With a comparison enabled, include the comparison-period login count and latest successful sign-in in UTC for those same employees. An employee who signed in during the comparison period still qualifies if they had zero current-period sign-ins. An employee in scope only during the comparison period is excluded. Distinguish zero observed sign-ins from unavailable data or an out-of-scope assignment.
 
@@ -287,18 +298,19 @@ The named employees, dates and expected counts below refer to the synthetic POC 
 20. **Leaderboard suppression.** For Everyday Thanks and the same periods, Alex’s branch has 1 versus 4 sent events across 7 eligible senders in each period (frequencies of 0.14 versus 0.57). Its receiving population falls below the five-person minimum in both periods. Jules’s branch has 0 received events across 8 eligible recipients versus 5 across 9. With a test minimum of 9, only Jules’s comparison reading qualifies and the change is unavailable. The same rules apply to direct access, saved views and scheduled CSVs.
 21. **Approval history.** In Harbor Health, compare Above and Beyond submissions on November 1–10, 2026 with October 1–10. Alex’s branch under Drew has 7 versus 2 requests. Approved counts are 3 versus 2. Submitted, pending, rejected and canceled each account for 1 versus 0. The distinct request IDs in each ledger must reconcile with those counts. Pending request `r-pending` includes its outstanding approval stage. Team scope, search, status, program, employee attributes and dates carry into detail and delivery under the I1 grant.
 22. **Login visibility.** For Harbor Health in October 2026, the North manager’s authorized history includes the transferring employee’s October 15 sign-in and excludes sign-ins after the October 16 transfer. Employee e09’s personal history has 7 October sign-ins, most recently October 28 at 08:00 UTC. Downloaded and scheduled results obey the same scope.
-23. **Overview login reconciliation.** In Harbor Health for October versus September 2026, the admin has 244 versus 234 successful sign-ins, 35 versus 34 distinct users and 5 versus 5 assigned employees without a login. The overview and U1 must agree on each measure and both daily series, including under a manager or personal grant, a custom comparison and a Clinical service grouping. Revoking U1 removes login measures and detail from the overview and subsequent deliveries.
-24. **No-login membership.** The October Harbor Health admin result contains exactly e07, e14, e21, e28 and e35. The North manager’s result contains e07 and e14. Employee e09’s October result is empty. With October 1 as the reporting window and the full month as the comparison, e09’s personal result contains e09 with zero current sign-ins and seven comparison sign-ins. The list must reconcile with the current count after changes to organization, attributes, team or dates. Saved views and scheduled CSVs preserve the selection under current grants.
+23. **Overview login reconciliation.** In Harbor Health for October versus September 2026, the admin has 244 versus 234 successful sign-ins, 35 versus 34 distinct users and 4 versus 4 reportable employees without a login. The overview and U1 must agree on each measure and both daily series, including under a manager or personal grant, a custom comparison and a Clinical service grouping. Revoking U1 removes login measures and detail from the overview and subsequent deliveries.
+24. **No-login membership.** The October Harbor Health admin result contains exactly e14, e21, e28 and e35. The North manager’s result contains only e14. Employee e09’s October result is empty. With October 1 as the reporting window and the full month as the comparison, e09’s personal result contains e09 with zero current sign-ins and seven comparison sign-ins. The list must reconcile with the current count after changes to organization, attributes, team or dates. Saved views and scheduled CSVs preserve the selection under current grants.
 25. **Responsive charts.** At 320 and 768 pixels of viewport width, inspect the recognition and order timelines, comparison and funding trends, wallet balances, category bars, award activity and award status. Axis labels and endpoint dates are legible and fit the chart. A selected marker stays circular and the award status shares retain their proportions. On a wider screen the same selection yields the same readings. With comparison enabled, inspect a day, open the report and verify the applicable values and dates against its CSV.
 26. **Milestone reconciliation.** At Harbor Health’s November 10 snapshot, the 13 awards comprise 4 upcoming, 5 outstanding, 3 redeemed and 1 expired. The redemption rate is 3 of 9 (33.33%). The 30-, 60- and 90-day lists contain 1, 2 and 3 awards respectively. The outstanding list includes the failed notification and excludes the redeemed award awaiting shipment.
 27. **Budget and attribute drill-through.** For Harbor Health’s administrator, compare October 2026 with September 1–21. Total remaining budget is 95,175 versus 86,125 points. Verify the Shared Recognition Fund’s October 31 closing balance of 56,450 points in the overview, funding report and CSV. For an overview measure grouped by Clinical service, opening Outpatient retains that group and both windows, and its CSV readings reconcile with the overview group.
 28. **Customer and delivery isolation.** Save a filtered overview, schedule it and export it. Change customer and role and verify that each workspace lists only its own items. Return as the original owner and verify the saved settings. Run a rolling schedule on two different UTC dates and verify that the reporting window advances, an explicit custom comparison stays fixed, and each delivery obeys the owner’s current grants.
 29. **Orders and restricted finance.** In Summit Retail, the admin sees 10 orders, 14 ordered units and 9 distinct redeemers across the sample history. The partial shipment accounts for 2 of its order’s 5 units. In Cedar Global, two platform allocations reconcile to 120 points, $0.98 in funding cost, $1.09 in liability released and $1.32 in taxable benefit. Count the associated order’s retail value once. Switching to a personal order view exposes only the employee’s authorized quantities and points.
 30. **Tenant branding.** As a Harbor Health admin, save two colors. Verify them on the overview, a report with a comparison, and a workspace dialog. Switch to another customer and verify its own palette. Return to Harbor Health as a manager or employee and verify the saved colors and role-appropriate reports. Only the admin can save new colors. Switch between Light, Dark and System with a report open, then reload and verify the appearance preference. Both series, labels and controls remain legible and the report readings agree across modes.
+31. **One-time-use PAC exclusion.** In the Harbor Health fixture, e07 authenticates only by PAC in September and October and is absent from both periods’ login populations and employee detail. Employee e09 has an October 31 PAC login after seven qualifying October sign-ins. The latest reportable sign-in remains October 28 at 08:00 UTC. The October admin overview and login report still show 244 sign-ins, 35 distinct users and four employees without a login.
 
 ## 8. Open product/data validation decisions
 
-- Confirm the production authentication source, event IDs, coverage of SSO providers and retained login history before reporting production adoption trends.
+- Confirm the production authentication source, event IDs, coverage of SSO providers, the source field and value identifying one-time-use PAC, and retained login history before reporting production adoption trends.
 - Confirm precise date basis for approved recognition metrics (approval timestamp versus issuance timestamp), including reversals/cancellations after approval.
 - Verify the warehouse's private-recognition blanking behavior and its scope across direct reports, detail records, full exports, and scheduled output.
 - Confirm multiple-recipient recognition handling, cross-program distinct-employee denominators, and normalization conventions.

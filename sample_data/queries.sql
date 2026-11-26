@@ -192,7 +192,7 @@ FROM report_runs WHERE tenant_id='meridian';
 SELECT user_id,resource,requested_tenant_id,expected_decision,explanation
 FROM access_cases WHERE tenant_id='cedar';
 
--- U1. Successful interactive logins and distinct employees for the UTC period.
+-- U1. Qualifying interactive logins and distinct employees for the UTC period. The view excludes one-time-use PAC.
 SELECT tenant_id, COUNT(*) AS successful_logins, COUNT(DISTINCT employee_id) AS users_logged_in
 FROM user_logins
 WHERE occurred_at >= '2026-10-01' AND occurred_at < '2026-11-01'

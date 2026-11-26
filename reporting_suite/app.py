@@ -260,6 +260,13 @@ def report_snapshot(db, tenant, policy, tab):
         can_view_order_value=policy.can_view_order_value,
     )
     if "U1" in codes:
+        if tab == "logins":
+            visible = {h["employee_id"] for h in history}
+            people = {k: v for k, v in people.items() if k in visible}
+        excluded, catalog["login_exempt_days"] = policy.login_exclusions(db, tenant)
+        if tab is None:
+            # The combined snapshot shares its directory with non-login reports.
+            catalog["login_excluded_employees"] = sorted(excluded & people.keys())
         login_events = rows(db, """SELECT employee_id, occurred_at FROM user_logins
             WHERE tenant_id=? AND occurred_at <= (SELECT value FROM dataset_metadata WHERE key='data_as_of')
             ORDER BY occurred_at DESC, login_id""", tenant)

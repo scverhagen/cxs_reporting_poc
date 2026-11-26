@@ -9,6 +9,7 @@
       "focus": "Recognition, values, participation and historical eligibility",
       "counts": {
         "employees": 24,
+        "authentication_events": 1499,
         "user_logins": 1495,
         "recognitions": 146,
         "milestone_entitlements": 13,
@@ -25,6 +26,7 @@
       "focus": "Milestone pipeline, non-responders and notification exceptions",
       "counts": {
         "employees": 40,
+        "authentication_events": 2479,
         "user_logins": 2475,
         "recognitions": 102,
         "milestone_entitlements": 13,
@@ -41,6 +43,7 @@
       "focus": "Shared employee wallets, unified orders and fulfillment",
       "counts": {
         "employees": 60,
+        "authentication_events": 3518,
         "user_logins": 3514,
         "recognitions": 234,
         "milestone_entitlements": 13,
@@ -57,6 +60,7 @@
       "focus": "Many-to-many funding banks, budgets and approval investigation",
       "counts": {
         "employees": 32,
+        "authentication_events": 2012,
         "user_logins": 2008,
         "recognitions": 124,
         "milestone_entitlements": 13,
@@ -73,6 +77,7 @@
       "focus": "Restricted reporting, financial extensions and asynchronous exports",
       "counts": {
         "employees": 36,
+        "authentication_events": 1957,
         "user_logins": 1953,
         "recognitions": 168,
         "milestone_entitlements": 13,
