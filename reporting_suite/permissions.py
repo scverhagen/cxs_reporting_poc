@@ -243,6 +243,8 @@ class Permissions:
             return "Customer-wide access"
         if self.owner == "employee":
             return "Personal records"
+        if tab in ("overview", "teams"):
+            return " · ".join(dict.fromkeys(self.scope_label(key) for key in self.overview_tabs))
         groups = {
             org for _, orgs in self.rules.get(REPORTS.get(tab), []) for org in orgs
         }

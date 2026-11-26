@@ -95,12 +95,11 @@ def snapshot(db, tenant, owner="admin", tab=None):
         common_orgs = set.intersection(
             *({o["org_id"] for o in r["orgs"]} for r in reports.values())
         )
-        scopes = dict.fromkeys(r["viewer"]["scope"] for r in reports.values())
         return dict(
             tab=tab,
             reports=reports,
             currency=first["currency"],
-            viewer={**first["viewer"], "scope": " · ".join(scopes)},
+            viewer={**first["viewer"], "scope": policy.scope_label(tab)},
             orgs=[o for o in first["orgs"] if o["org_id"] in common_orgs],
         )
     return report_snapshot(db, tenant, policy, tab)
@@ -380,10 +379,12 @@ class Handler(BaseHTTPRequestHandler):
                     workspace.customer_branding(result["customers"])
                     for customer in result["customers"]:
                         actor = Permissions(db, customer["tenant_id"], owner)
+                        navigation = [*actor.tabs, "overview", "teams"] if actor.overview_tabs else actor.tabs
                         customer.update(
                             tabs=actor.tabs,
                             overview_available=bool(actor.overview_tabs),
                             name_of_viewer=actor.name,
+                            report_scopes={tab: actor.scope_label(tab) for tab in navigation},
                         )
                 else:
                     query = parse_qs(url.query)

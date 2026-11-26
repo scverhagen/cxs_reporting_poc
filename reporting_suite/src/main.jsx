@@ -704,7 +704,9 @@ function App() {
                   {switching
                     ? "Switching role…"
                     : activeCustomer?.name_of_viewer}
-                  {data && <div className="mt-0.5">{data.viewer.scope}</div>}
+                  {!switching && tab && (
+                    <div className="mt-0.5">{activeCustomer.report_scopes[tab]}</div>
+                  )}
                 </div>
               </fieldset>
             )}
