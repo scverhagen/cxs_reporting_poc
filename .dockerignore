@@ -1,0 +1,13 @@
+**
+!Dockerfile
+!reporting_suite/
+!reporting_suite/*.py
+!reporting_suite/package*.json
+!reporting_suite/index.html
+!reporting_suite/vite.config.js
+!reporting_suite/tsconfig.json
+!reporting_suite/src/
+!reporting_suite/src/**
+!sample_data/
+!sample_data/generate.py
+!sample_data/schema.sql

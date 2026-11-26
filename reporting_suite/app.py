@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import sqlite3
 from contextlib import closing
 from http.cookies import SimpleCookie, CookieError
@@ -438,14 +439,15 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", type=int, default=8765)
-    port = parser.parse_args().port
-    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=os.environ.get("PORT", "8765"))
+    args = parser.parse_args()
+    server = ThreadingHTTPServer((args.host, args.port), Handler)
     workspace.initialize()
     threading.Thread(
         target=workspace.worker,
         args=(DATABASE, snapshot, server.server_port),
         daemon=True,
     ).start()
-    print(f"Reporting suite at http://127.0.0.1:{server.server_port}", flush=True)
+    print(f"Reporting suite at http://{args.host}:{server.server_port}", flush=True)
     server.serve_forever()

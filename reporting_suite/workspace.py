@@ -576,9 +576,8 @@ def ready_email(job, token, finished, port):
     message["Date"] = formatdate(finished, usegmt=True)
     message["Message-ID"] = f"<{job['id']}@reports.example.invalid>"
     message["Subject"] = "Report ready · " + " ".join(job["name"].splitlines())
-    link = (
-        f"http://127.0.0.1:{port}/api/download?customer={job['tenant']}&token={token}"
-    )
+    base_url = (os.environ.get("REPORTING_PUBLIC_URL") or f"http://127.0.0.1:{port}").rstrip("/")
+    link = f"{base_url}/api/download?customer={job['tenant']}&token={token}"
     message.set_content(
         f"Your {job['name']} CSV is ready. The download link expires in 24 hours.\n\n{link}\n"
     )

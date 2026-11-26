@@ -15,6 +15,15 @@ python3 reporting_suite/app.py
 
 Open [the reporting suite](http://127.0.0.1:8765/). The build produces both the browser app and the CSV export worker. The fixture generator creates one SQLite database for all five customers. Git tracks the generator, schema, example queries and expected manifest. The server stores saved views, schedules and exports separately in `reporting_suite/var/`.
 
+## Deploy on DigitalOcean App Platform
+
+1. In App Platform, select the GitHub repository `scverhagen/cxs_reporting_poc`, branch `main`, and the repository root (`/`) as the source directory. The root [Dockerfile](Dockerfile) builds the dashboard, CSV worker, Python API and all five sample datasets.
+2. Use one **Web Service** instance with HTTP port `8080` and route `/`. Leave the build and run command overrides blank so the Dockerfile controls startup.
+3. Add a runtime environment variable named `REPORTING_PUBLIC_URL` with the value `${APP_URL}`. DigitalOcean fills in the public address for download links in report-ready emails. [Environment variable reference](https://docs.digitalocean.com/products/app-platform/how-to/use-environment-variables/)
+4. Deploy, open the app URL and select a sample customer. The dashboard and the reporting API share that URL.
+
+The sample datasets are included in each deployment. Saved views, schedules, branding overrides and export history live in the instance’s writable SQLite database and reset when DigitalOcean replaces the instance, including on redeploy. [App Platform storage limits](https://docs.digitalocean.com/products/app-platform/details/limits/)
+
 ## Verify
 
 After generating the fixtures and building the app, run:
