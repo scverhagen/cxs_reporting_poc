@@ -68,7 +68,7 @@ export function CompareFilter({ filters, setFilters, asOf }) {
 export function ComparisonDatePrompt({ asOf }) {
   return (
     <p role="alert">
-      Choose a comparison start and end between Jan 1 and{" "}
+      Choose a comparison start and end between Jan 1, 2026 and{" "}
       {shortDate(asOf) + ", " + asOf.slice(0, 4)}, with the end on or after the
       start.
     </p>

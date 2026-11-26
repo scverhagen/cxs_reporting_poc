@@ -5,23 +5,21 @@ The fixtures cover every curated report family in `../CXS_Recognize_Reporting_Re
 and provide configuration/lifecycle records for the shared reporting capabilities.
 No production data, working download tokens, or real delivery integrations are included.
 
-**Reporting data watermark:** November 10, 2026, 16:00 UTC (10:00 a.m. Central).
-Mock export operations occur after that source-data watermark. Activity spans January–November
-2026; upcoming milestone fixtures extend into February 2027. Generation is deterministic.
+**Reporting data watermark** is December 31, 2027 at 16:00 UTC. The fixed synthetic timeline covers January 2026 through December 2027. Each month from November 2026 onward includes recognitions, sign-ins, point transactions, orders and milestone redemptions for every customer. Upcoming milestones extend through April 9, 2028. October 2026 remains the reference period for the worked recognition and login examples.
 
 ## Five examples
 
 | Tenant ID | Example | Employees / recognition requests | What to demonstrate |
 | --- | --- | --- | --- |
-| `meridian` | **Meridian Labs: Are employees participating, and which values are reinforced?** | 24 / 146 | R1–R4. Three overlapping programs, including a non-monetary program; multi-component and multi-recipient recognition; private messages; social activity; eligible senders versus receivers; an October hire, termination, and organization transfer. |
-| `harbor` | **Harbor Health: Who has an upcoming milestone, and who has not redeemed?** | 40 / 102 | M1–M2. Service, retirement, and certification milestones; 30/60/90-day pipeline; four aging buckets; delivery failure; optional expiration; outstanding versus redeemed versus expired; a redeemed award stuck in fulfillment. |
-| `summit` | **Summit Retail: What happened to employee points and reward orders?** | 60 / 234 | P1, O1–O2. Shared wallets funded by multiple recognition programs; large balances; expiry, adjustment, refund, and as-of history; points and milestone orders in one timeline; multiple quantities, partial shipment, failed/canceled/delayed orders; one uncommon points-funded milestone. |
-| `atlas` | **Atlas Industrial: Where did the funding go, and where is this recognition?** | 32 / 124 | B1, I1, R3. One bank funds two programs; one program uses two banks; multiple bank users; top-up, corrections, unused reserve, actual award attribution; 625 points in potential commitments; multi-stage approvals and approved-but-unissued recognition. |
-| `cedar` | **Cedar Global: Can authorized users export and reconcile restricted information?** | 36 / 168 | F1, S1–S8. USD financial outputs, platform-supplied allocation/tax values, role/program/org/field grants, owner-only leaderboards, cross-tenant denial cases, saved views, schedules, queued/running/completed/failed/expired exports, mock email delivery, and permission rechecks. |
+| `meridian` | **Meridian Labs: Are employees participating, and which values are reinforced?** | 24 / 341 | R1–R4. Three overlapping programs, including a non-monetary program; multi-component and multi-recipient recognition; private messages; social activity; eligible senders versus receivers; an October hire, termination, and organization transfer. |
+| `harbor` | **Harbor Health: Who has an upcoming milestone, and who has not redeemed?** | 40 / 250 | M1–M2. Service, retirement, and certification milestones; 30/60/90-day pipeline; four aging buckets; delivery failure; optional expiration; outstanding versus redeemed versus expired; a redeemed award stuck in fulfillment. |
+| `summit` | **Summit Retail: What happened to employee points and reward orders?** | 60 / 539 | P1, O1–O2. Shared wallets funded by multiple recognition programs; large balances; expiry, adjustment, refund, and as-of history; points and milestone orders in one timeline; multiple quantities, partial shipment, failed/canceled/delayed orders; one uncommon points-funded milestone. |
+| `atlas` | **Atlas Industrial: Where did the funding go, and where is this recognition?** | 32 / 299 | B1, I1, R3. One bank funds two programs; one program uses two banks; multiple bank users; top-up, corrections, unused reserve, actual award attribution; 625 points in potential commitments; multi-stage approvals and approved-but-unissued recognition. |
+| `cedar` | **Cedar Global: Can authorized users export and reconcile restricted information?** | 36 / 391 | F1, S1–S8. USD financial outputs, platform-supplied allocation/tax values, role/program/org/field grants, owner-only leaderboards, cross-tenant denial cases, saved views, schedules, queued/running/completed/failed/expired exports, mock email delivery, and permission rechecks. |
 
 Every tenant includes the common lifecycle fixtures so the same report can be exercised across
 customers. Company size, recognition volume, eligibility populations, and financial
-extension availability vary. Each has 13 milestone entitlements and 10 orders. These are
+extension availability vary. Each has 34 milestone entitlements and 38 orders. These are
 functional examples for a demo, not statistically representative usage or load-test data.
 
 ## Open and reproduce
@@ -75,18 +73,18 @@ administrative totals; an owner with narrower scope should see different totals.
   `e20` becomes eligible October 16; `e19` leaves after October 20.
   `e18` sends before and after an October 16 transfer, in different organizations.
 - **Milestones:** every tenant has **1/2/3** upcoming entitlements within **30/60/90 days**,
-  **5 outstanding**, **3 redeemed**, **1 expired**, and **4 upcoming** overall.
-  The basic redeemed percentage is **3/9 = 33.33%** of entitlements that have become eligible.
+  **5 outstanding**, **17 redeemed**, **8 expired**, and **4 upcoming** overall.
+  The basic redeemed percentage is **17/30 = 56.67%** of entitlements that have become eligible.
   One outstanding entitlement has a failed notification; it is separately flagged.
   `m-redeemed-delayed` is not a non-responder even though its order is processing.
-- **Orders:** each tenant has **10 orders / 14 units / 9 distinct redeemers**;
-  **7 points-source orders / 11 units**, **3 milestone-source orders / 3 units**.
+- **Orders:** each tenant has **38 orders / 42 units / 10 distinct redeemers**;
+  **21 points-source orders / 25 units**, **17 milestone-source orders / 17 units**.
   `o-points-partial` has two line items totaling five units, with two units shipped.
   A points-funded milestone still has redemption source `milestone` and debits the shared wallet.
 - **Funding:** the shared bank funds peer and spot; peer also uses the North bank.
   Three bank balance rows remain three rows regardless of the program bridge.
   Pending/submitted requests total **625 potential points** and do not debit either ledger.
-- **Finance:** only Cedar has specialized allocation rows. The two source-provided records
+- **Finance:** only Cedar has specialized allocation rows. The two October 2026 allocation records
   allocate **120 points** to a redemption, with **98** funding-cost, **109** liability-release,
   and **132** taxable-value minor currency units. These are separate measures, and none is
   the order's retail value. Opening balances represent legacy points outside this supplied

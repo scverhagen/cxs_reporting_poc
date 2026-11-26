@@ -192,7 +192,7 @@ export function CatalogReport({
         </ReportComparison>
       ) : (
         <p role="alert">
-          Choose dates between January 1 and {asOf}, with the start on or before
+          Choose dates between January 1, 2026 and {asOf}, with the start on or before
           the end.
         </p>
       )}

@@ -116,7 +116,7 @@ class WorkspaceTests(unittest.TestCase):
         self.assertGreater(library["items"][0]["next_run"], time.time())
         (job,) = library["jobs"]
         content, _ = ws.download(self.source, "harbor", job["token"])
-        self.assertIn("Total awards,13,", content.decode())
+        self.assertIn("Total awards,34,", content.decode())
         self.assertIn("Outstanding,5,", content.decode())
         self.assertEqual(job["origin"], "Scheduled")
         with ws.connection(ws.STATE) as db:
@@ -135,7 +135,7 @@ class WorkspaceTests(unittest.TestCase):
         with ws.connection(ws.STATE) as db:
             (job,) = ws.library(db, "cedar")["jobs"]
         body, _ = ws.download(self.source, "cedar", job["token"])
-        self.assertIn("Taxable benefit,$1.32", body.decode())
+        self.assertIn("Taxable benefit,$5.24", body.decode())
         self.commit_action("cedar", "export", "financial")
         self.source.execute(
             "DELETE FROM field_grants WHERE tenant_id='cedar' AND field_name='financial_allocations'"
@@ -189,7 +189,7 @@ class WorkspaceTests(unittest.TestCase):
                     {o["org_id"] for o in teams["orgs"]},
                     {"north", "engineering", "operations"},
                 )
-                self.assertEqual(len(teams["milestones"]), 3)
+                self.assertEqual(len(teams["milestones"]), 19)
                 self.assertFalse(teams["events"])
                 activity = snapshot(self.source, tenant, "manager", "activity")
                 actual = {e["id"] for e in activity["events"]}
@@ -512,15 +512,15 @@ class WorkspaceTests(unittest.TestCase):
             (19, 12),
         )
         _, *status = chart_rows(dashboard, "Milestone awards by status")
-        self.assertIn(["Outstanding", "3", "1"], status)
+        self.assertIn(["Outstanding", "1", "0"], status)
         _, *wallet = chart_rows(dashboard, "Points balance over time")
         self.assertEqual(wallet[0][1:], ["2026-10-01", "42375", "2026-09-01", "41925"])
 
         november = export("overview", {"period": "2026-11"})
-        self.assertIn(["Previous through", "2026-10-10"], november)
+        self.assertIn(["Previous through", "2026-10-31"], november)
         self.assertEqual(
             chart_rows(november, "Orders over time")[-1][1::2],
-            ["2026-11-10", "2026-10-10"],
+            ["", "2026-10-31"],
         )
         september = export("activity", {"period": "2026-09"})
         self.assertEqual(
@@ -536,7 +536,21 @@ class WorkspaceTests(unittest.TestCase):
         self.assertIn(["Orders placed", "1", "0", "+1"], rows)
         self.assertFalse(any("Order value" in r for r in rows))
 
-        rows = export("overview", {"period": "all"})
+        annual = export("overview", {"period": "all"})
+        self.assertIn(["Previous from", "2026-01-01"], annual)
+        self.assertIn(["Previous through", "2026-12-31"], annual)
+        counts = next(r for r in annual if r and r[0] == "Approved recognitions")
+        for year, value in zip(("2027", "2026"), counts[1:3]):
+            expected = self.source.execute("""SELECT count(*) FROM v_official_recognition
+                WHERE tenant_id='meridian' AND substr(activity_at,1,4)=?""", (year,)).fetchone()[0]
+            self.assertEqual(int(value), expected)
+
+        december = export("activity", {"period": "2027-12"})
+        self.assertIn(["Previous from", "2027-11-01"], december)
+        self.assertIn(["Previous through", "2027-11-30"], december)
+        self.assertIn(["Through", "2027-12-31"], december)
+
+        rows = export("overview", {"period": "2026-01"})
         self.assertTrue(any(r and r[0] == "Comparison availability" for r in rows))
         counts = next(r for r in rows if r and r[0] == "Approved recognitions")
         self.assertEqual(counts[2:], ["—", "—"])
@@ -620,7 +634,7 @@ class WorkspaceTests(unittest.TestCase):
             ("2026-10-07", "2026-10-06"),
             ("2026-02-30", "2026-10-07"),
             ("2025-12-31", "2026-01-01"),
-            ("2026-10-01", "2026-11-11"),
+            ("2026-10-01", "2028-01-01"),
         ]:
             with self.subTest(start=start, end=end), self.assertRaises(ws.Problem):
                 ws.clean_view(
@@ -849,7 +863,7 @@ class WorkspaceTests(unittest.TestCase):
         self.assertIn(["Shared Recognition Fund", "shared", "31", "2026-10-31", "56450"], single)
         rolling = series("funding", dict(period="last7", compare="previous"),
                          dict(dateMode="last7", bank="reserve"))
-        self.assertEqual(rolling[-1][3:], ["2026-11-12", "", "2026-11-05", "20000"])
+        self.assertEqual(rolling[-1][3:], ["2026-11-12", "20000", "2026-11-05", "20000"])
         unavailable = series("funding", dict(period="all", compare="previous"),
                              dict(start="2026-01-01", end="2026-11-10", bank="reserve"))
         self.assertTrue(all(row[-1] == "" for row in unavailable[1:]))
@@ -975,7 +989,7 @@ class WorkspaceTests(unittest.TestCase):
             _, *rows = table("overview", {**october, "compare": "previous"}, owner=role)
             self.assertEqual({r[0] for r in rows}, allowed)
             self.assertNotIn("Order value", {r[2] for r in rows})
-        _, *unavailable = table("overview", {"period": "all", "compare": "previous"})
+        _, *unavailable = table("overview", {"period": "2026-01", "compare": "previous"})
         self.assertTrue(all(r[-2:] == ["—", "—"] for r in unavailable))
 
     def test_named_team_pages_and_historical_individual_records(self):
@@ -1137,7 +1151,7 @@ class WorkspaceTests(unittest.TestCase):
             self.assertIn(["Page scope", "Individual"], rows)
             self.assertIn(["Collaboration", *counts], rows)
             self.assertNotIn(["Direct reports"], rows)
-        rows = export(alex, filters={"period": "all", "compare": "previous"})
+        rows = export(alex, filters={"period": "2026-01", "compare": "previous"})
         self.assertTrue(any(r[:3] == ["Blair Demo Harbor", "value", "Ownership"] and r[-2:] == ["—", "—"] for r in rows))
         # R2 is independent of the grant for Recognition activity.
         self.source.execute("DELETE FROM report_grants WHERE tenant_id='harbor' AND user_id='manager' AND report_id='R1'")
@@ -1184,7 +1198,7 @@ class WorkspaceTests(unittest.TestCase):
             rows = export(view(path, "individual", program="care"))
             self.assertIn(["Approved recognitions", *expected], rows)
             self.assertNotIn(["Direct reports"], rows)
-        rows = export(view(alex, period="all", compare="previous"))
+        rows = export(view(alex, period="2026-01", compare="previous"))
         self.assertTrue(any(r[:1] == ["Approved recognitions"] and r[-2:] == ["—", "—"] for r in rows))
         for owner in ("manager", "employee"):
             with self.assertRaises(ws.Problem):
@@ -1327,7 +1341,7 @@ class WorkspaceTests(unittest.TestCase):
                                end="2026-10-01", comparisonStart="2026-09-30", comparisonEnd="2026-09-30"))
         self.assertEqual(section(boundary, "Recognition requests"), [])
         self.assertEqual(section(boundary, "Comparison period requests")[0][0], "r-boundary")
-        no_history = export(view(drew, period="all", compare="previous"))
+        no_history = export(view(drew, period="2026-01", compare="previous"))
         self.assertNotIn(["Previous period requests"], no_history)
         self.assertTrue(all(r[-2:] == ["—", "—"] for r in section(no_history, "Direct reports")))
 
@@ -1335,7 +1349,7 @@ class WorkspaceTests(unittest.TestCase):
                       options=dict(program="spot", query="r-pending"))
         rows = export(legacy)
         self.assertIn(["From", "2026-01-01"], rows)
-        self.assertIn(["Through", "2026-11-10"], rows)
+        self.assertIn(["Through", "2027-12-31"], rows)
         self.assertEqual(section(rows, "Recognition requests")[0][0], "r-pending")
         self.assertNotIn(["Previous period requests"], rows)
         for owner in ("manager", "employee"):

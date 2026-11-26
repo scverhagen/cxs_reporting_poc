@@ -8,7 +8,7 @@ Select **Compare to → Previous period** on Overview to see the previous value 
 
 To pick both windows, set **Reporting period** to **Custom dates** and enter **From** and **Through**. Set **Compare to** to **Custom dates** and enter **Comparison from** and **Comparison through**. Both ranges are inclusive and may overlap, have different lengths, or appear in either order. Saved views, schedules, drill-throughs and CSVs retain both selections. In a recipient export, an event in both periods appears once per recipient in each labeled period.
 
-**Last 7 days**, **Last 30 days** and **Last 90 days** include the UTC day the report runs. Saved views and schedules store the preset. Each delivery resolves it again and includes the resulting dates in the CSV. **Previous period** follows the rolling window by the same number of days, while a custom comparison retains its chosen dates. The fixtures are a fixed November 10 snapshot, so later runs move the dates without creating new transactions.
+**Last 7 days**, **Last 30 days** and **Last 90 days** include the UTC day the report runs. Saved views and schedules store the preset. Each delivery resolves it again and includes the resulting dates in the CSV. **Previous period** follows the rolling window by the same number of days, while a custom comparison retains its chosen dates. All 24 months from January 2026 through December 2027 are selectable. Year to date compares 2027 with 2026. Rolling windows follow the actual run date within or beyond that fixed synthetic history.
 
 On Overview, choose **Break down by** to split each chart using a customer employee attribute. For Harbor Health, choose **Clinical service** and open **Outpatient** on a chart to see the underlying report for that service and both selected periods. Saved views and schedules retain the breakdown. The CSV identifies the group on each series row. **Reset filters** in the filter panel restores the defaults for the active overview or report.
 
@@ -46,13 +46,13 @@ Select a customer and **Demo role** in the sidebar. The role persists across cus
 | --- | --- |
 | Admin | Customer-wide reports enabled by the fixture, including taxable benefits at Cedar Global. |
 | Manager | North Division user logins, recognition activity, categories, participation and milestones. Activity follows the sender’s assignment on the approval date and includes the recipients named on those events. Participation scopes senders and recipients independently. Milestones use the assignment at eligibility, or the snapshot date for future eligibility. Recognition message text is hidden. |
-| Employee | The selected employee’s own logins, points, orders and milestones. Each fixture uses employee `e09`, who has a delivered points order and no milestone entitlements at the snapshot date. |
+| Employee | The selected employee’s own logins, points, orders and milestones. Each fixture uses employee `e09`, who has delivered orders alongside redeemed, outstanding and upcoming milestones. |
 
 The demo switcher provides local impersonation. The server resolves grants and filters source data for the active role before returning a report. Saved views, schedules, exports, delivery emails and links belong to one customer and one reporting user. A schedule uses its creator’s current permissions even when someone is viewing the suite under another role. Only admins can see monetary order totals and unit prices. Employees can see the quantity and points spent on their own orders.
 
 Milestone reports use the dataset snapshot date. Awards overview counts entitlements in each lifecycle state and divides redemptions by all awards that have reached eligibility, including expired awards. Select a horizon or aging bucket to open its employee list. Upcoming milestones supports 30, 60, 90 days and all future dates. Non-responders includes outstanding awards with failed notifications. Redeemed awards leave the list immediately, including those awaiting shipment.
 
-Milestone program, type, and organization filters apply to all three milestone reports. Organization uses the employee's assignment at eligibility for past awards and the snapshot assignment for upcoming awards. The customer selector retains the report and its horizon or aging window while refreshing customer-specific filters. Harbor Health's November 10, 2026 snapshot has four upcoming, five outstanding, three redeemed, and one expired entitlement.
+Milestone program, type, and organization filters apply to all three milestone reports. Organization uses the employee's assignment at eligibility for past awards and the snapshot assignment for upcoming awards. The customer selector retains the report and its horizon or aging window while refreshing customer-specific filters. Harbor Health's December 31, 2027 snapshot has four upcoming, five outstanding, 17 redeemed and eight expired entitlements.
 
 
 ### Customer appearance
@@ -66,9 +66,9 @@ The workspace includes the overview, a managerial hierarchy report, and the 13 c
 | Customer | Report to try | Expected result |
 | --- | --- | --- |
 | Meridian Labs | Program performance and recognition leaderboards | October 2026 has 19 approved events, 850 points and 5 of 24 eligible senders participating. Department ranking suppresses groups below five eligible employees. |
-| Summit Retail | Employee points, order activity and fulfillment exceptions | Ten submitted orders cover 14 units. The partial order contains five units and its shipment contains two. Wallet transaction history includes awards, debits and refunds. |
+| Summit Retail | Employee points, order activity and fulfillment exceptions | Across the full timeline, 38 orders cover 42 units. The partial order contains five units and its shipment contains two. Wallet transaction history includes awards, debits and refunds. |
 | Atlas Industrial | Funding budgets and approval history | The 625 potential commitment points have no bank debit. Search for `r-pending` to see the manager's approval and the outstanding director stage. |
-| Cedar Global | Taxable benefits | Two platform allocations account for 120 points, $0.98 funding cost, $1.09 liability released and $1.32 taxable benefit. The related order costs are counted once. |
+| Cedar Global | Taxable benefits | In October 2026, two platform allocations account for 120 points, $0.98 funding cost, $1.09 liability released and $1.32 taxable benefit. The related order costs are counted once. |
 
 Program performance and leaderboards default to October for comparison with the recognition activity report. Operational reports start with the full sample period. Wallets use a balance date. Order and approval filters use submission dates, and current status reflects the snapshot. Fulfillment exceptions initially flag open orders aged seven days or more in addition to recorded exceptions, failures and cancellations. This threshold is adjustable.
 

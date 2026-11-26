@@ -7,8 +7,9 @@ from datetime import date, timedelta
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-AS_OF = "2026-11-10T16:00:00Z"
-TODAY = date(2026, 11, 10)
+REPORT_END = date(2027, 12, 31)
+AS_OF = f"{REPORT_END}T16:00:00Z"
+REFERENCE_DAY = date(2026, 11, 10)
 PROFILES = [
     ("meridian", "Meridian Labs", "Recognition, values, participation and historical eligibility", 24, "America/Chicago", "USD", 0),
     ("harbor", "Harbor Health", "Milestone pipeline, non-responders and notification exceptions", 40, "America/New_York", "USD", 0),
@@ -101,7 +102,7 @@ def seed_tenant(db, profile):
         # Hire and termination dates bound each employee's account activity.
         first = date(2026, 1, 1) + timedelta(days=(i + size) % 7)
         interval = timedelta(days=3 + (i + size) % 8)
-        while i % 7 and first <= TODAY:
+        while i % 7 and first <= REPORT_END:
             day = first.isoformat()
             if start <= day and (not end or day < end):
                 for hour in ([8, 14] if (first.day + i) % 4 == 0 else [8]):
@@ -179,16 +180,23 @@ def seed_tenant(db, profile):
             put("approval_events", approval_event_id=rid+"-final", recognition_id=rid, stage="director",
                 action="approved", actor_id="e03", occurred_at=approved_at, reason="Final approval")
 
-    # Eleven months of deterministic activity, with different org sizes and usage volumes.
+    # Preserve the original reference months and IDs. Spread later activity across each month.
     volume = {"meridian": 12, "harbor": 8, "summit": 20, "atlas": 10, "cedar": 14}[tid]
-    for month in range(1, 12):
-        for j in range(volume):
-            day = f"2026-{month:02d}-{j % 8 + 1:02d}"
+    months = [date(year, month, 1) for year in range(2026, REPORT_END.year + 1)
+              for month in range(1, 13) if date(year, month, 1) <= REPORT_END]
+    extension = [month for month in months if month >= REFERENCE_DAY.replace(day=1)]
+    for index, month in enumerate(months):
+        original = month <= extension[0]
+        count = volume if original else volume + (index + size) % 7
+        for j in range(count):
+            offset = j % 8 if original else (j * 27 // (count - 1))
+            day = (month + timedelta(days=offset)).isoformat()
             pid = ("peer", "spot", "care")[j % 3]
             eid = f"e{9 + j % 8:02d}"
             bid = "north-fund" if pid == "peer" and j % 2 == 0 else "shared"
             points = 0 if pid == "care" else 25 * (j % 4 + 1)
-            rid = f"r-{month:02d}-{j:02d}"
+            prefix = month.strftime("%m" if original else "%Y-%m")
+            rid = f"r-{prefix}-{j:02d}"
             recognition(rid, pid, f"e{j % 4 + 1:02d}", [(eid, points, bid if points else None)], day,
                         categories=[("Customer impact", "Innovation", "Teamwork")[j % 3]],
                         values=[("Collaboration", "Ownership", "Care")[j % 3]])
@@ -197,6 +205,12 @@ def seed_tenant(db, profile):
                     put("social_events", social_event_id=f"{rid}-{kind}", recognition_id=rid,
                         employee_id="e05", kind=kind, occurred_at=stamp(day, 15),
                         comment_text="Great work! (synthetic)" if kind == "comment" else None)
+
+    for day in (16, 22, 28):
+        recognition(f"r-nov-late-{day}", "peer", "e01", [("e09", 25, "north-fund")], f"2026-11-{day}")
+    for year in range(2027, REPORT_END.year + 1):
+        for bid in ("shared", "north-fund"):
+            bank(f"{bid}-{year}-funding", bid, "top_up", 15000, stamp(f"{year}-01-01", 0))
 
     recognition("r-multi", "peer", "e01", [("e09", 100, "shared"), ("e10", 150, "shared")],
                 components=["ecard", "badge", "points", "message", "certificate"],
@@ -226,10 +240,10 @@ def seed_tenant(db, profile):
 
     # Entitlement lifecycle is independent from both recognition and fulfillment.
     milestone_specs = [
-        ("m-upcoming-15", "e21", "service_anniversary", 15, None, None, "not_due", None, "entitlement"),
-        ("m-upcoming-45", "e22", "retirement", 45, None, None, "not_due", None, "entitlement"),
-        ("m-upcoming-75", "e23", "certification", 75, None, None, "not_due", None, "entitlement"),
-        ("m-upcoming-100", "e24", "service_anniversary", 100, None, None, "not_due", None, "entitlement"),
+        ("m-upcoming-15", "e21", "service_anniversary", 15, 15, None, "delivered", 105, "entitlement"),
+        ("m-upcoming-45", "e22", "retirement", 45, 45, None, "delivered", 135, "entitlement"),
+        ("m-upcoming-75", "e23", "certification", 75, 75, None, "delivered", 165, "entitlement"),
+        ("m-upcoming-100", "e24", "service_anniversary", 100, 100, None, "delivered", 190, "entitlement"),
         ("m-unredeemed-10", "e17", "service_anniversary", -10, -10, None, "delivered", 80, "entitlement"),
         ("m-unredeemed-35", "e18", "retirement", -35, -35, None, "delivered", None, "entitlement"),
         ("m-unredeemed-65", "e21", "certification", -65, -65, None, "delivered", 25, "entitlement"),
@@ -240,25 +254,48 @@ def seed_tenant(db, profile):
         ("m-expired", "e24", "certification", -120, -120, None, "delivered", -1, "entitlement"),
         ("m-points-funded", "e10", "certification", -20, -20, -10, "delivered", None, "employee_points"),
     ]
+    # Keep the original dated examples and add a redemption in every extension month.
+    extra_orders = []
+    for index, month in enumerate(extension):
+        period = month.strftime("%Y-%m")
+        eligible = month.replace(day=18)
+        offset = (eligible - REFERENCE_DAY).days
+        mid = f"m-service-{period}"
+        eid = f"e{9 + index % 8:02d}"
+        milestone_specs.append((mid, eid, "service_anniversary", offset, offset, offset + 2,
+                                "delivered", None, "entitlement"))
+        extra_orders.append((f"o-award-{period}", eid, "milestone", mid, month.replace(day=20).isoformat(), "delivered", 0))
+        extra_orders.append((f"o-points-{period}", "e09", "points", None, month.replace(day=23).isoformat(), "delivered", 25))
+
+    snapshot_offset = (REPORT_END - REFERENCE_DAY).days
+    for age, eid, kind in [(10, "e09", "service_anniversary"), (35, "e18", "retirement"), (65, "e23", "certification")]:
+        offset = snapshot_offset - age
+        failed = age == 10
+        milestone_specs.append((f"m-outstanding-{age}", eid, kind, offset, None if failed else offset,
+                                None, "failed" if failed else "delivered", offset + 90, "entitlement"))
+    for ahead, eid, kind in [(15, "e09", "service_anniversary"), (45, "e22", "retirement"),
+                             (75, "e23", "certification"), (100, "e24", "service_anniversary")]:
+        milestone_specs.append((f"m-next-{ahead}", eid, kind, snapshot_offset + ahead,
+                                None, None, "not_due", None, "entitlement"))
     for mid, eid, kind, offset, notified, redeemed, notification, expiry, funding in milestone_specs:
-        eligible = (TODAY + timedelta(days=offset)).isoformat()
+        eligible = (REFERENCE_DAY + timedelta(days=offset)).isoformat()
         put("milestone_entitlements", entitlement_id=mid, employee_id=eid, program_id="milestone",
             milestone_type=kind, milestone_date=eligible, eligible_on=eligible,
-            notified_at=stamp((TODAY+timedelta(days=notified)).isoformat()) if notified is not None else None,
-            notification_status=notification, expires_on=(TODAY+timedelta(days=expiry)).isoformat() if expiry is not None else None,
-            redeemed_at=stamp((TODAY+timedelta(days=redeemed)).isoformat()) if redeemed is not None else None,
+            notified_at=stamp((REFERENCE_DAY+timedelta(days=notified)).isoformat()) if notified is not None else None,
+            notification_status=notification, expires_on=(REFERENCE_DAY+timedelta(days=expiry)).isoformat() if expiry is not None else None,
+            redeemed_at=stamp((REFERENCE_DAY+timedelta(days=redeemed)).isoformat()) if redeemed is not None else None,
             award_value_minor=15000 if kind == "retirement" else 5000,
             funding_mode=funding, required_points=150 if funding == "employee_points" else None)
         for event_kind, event_offset in [("eligible", offset), ("notified", notified), ("redeemed", redeemed)]:
-            if event_offset is not None and event_offset <= 0:
+            if event_offset is not None and event_offset <= snapshot_offset:
                 put("milestone_events", milestone_event_id=f"{mid}-{event_kind}", entitlement_id=mid,
-                    kind=event_kind, occurred_at=stamp((TODAY+timedelta(days=event_offset)).isoformat()), detail=None)
+                    kind=event_kind, occurred_at=stamp((REFERENCE_DAY+timedelta(days=event_offset)).isoformat()), detail=None)
         if notification == "failed":
             put("milestone_events", milestone_event_id=mid+"-failed", entitlement_id=mid,
                 kind="notification_failed", occurred_at=stamp(eligible, 13), detail="Synthetic email delivery failure")
-        if expiry is not None and expiry <= 0:
+        if expiry is not None and expiry <= snapshot_offset:
             put("milestone_events", milestone_event_id=mid+"-expired", entitlement_id=mid,
-                kind="expired", occurred_at=stamp((TODAY+timedelta(days=expiry)).isoformat(), 0), detail=None)
+                kind="expired", occurred_at=stamp((REFERENCE_DAY+timedelta(days=expiry)).isoformat(), 0), detail=None)
 
     order_specs = [
         ("o-points-delivered", "e09", "points", None, "2026-10-03", "delivered", 120),
@@ -272,7 +309,7 @@ def seed_tenant(db, profile):
         ("o-milestone-delivered", "e18", "milestone", "m-redeemed-delivered", "2026-10-16", "delivered", 0),
         ("o-milestone-points", "e10", "milestone", "m-points-funded", "2026-10-31", "delivered", 150),
     ]
-    for oid, eid, source, mid, day, status, spent in order_specs:
+    for oid, eid, source, mid, day, status, spent in order_specs + extra_orders:
         # Five units on a two-line partial order; all other orders contain one unit.
         item_specs = [("i1", "MUG-DEMO", "Demo mug", 2, 1200), ("i2", "NOTE-DEMO", "Demo notebook", 3, 700)] if status == "partially_shipped" else [
             ("i1", "AWARD-DEMO" if mid else "REWARD-DEMO", "Synthetic milestone award" if mid else "Synthetic reward", 1, 15000 if mid == "m-redeemed-delivered" else 5000 if mid else 2500)]
@@ -321,6 +358,14 @@ def seed_tenant(db, profile):
                 award_transaction_id=award, redemption_transaction_id="redeem-o-points-delivered",
                 allocated_points=points, funding_cost_minor=funding_cost, liability_released_minor=liability,
                 taxable_value_minor=taxable, tax_jurisdiction="GB-DEMO", source_calculation_id="PLATFORM-SYNTHETIC-2026-001")
+
+        for month in extension:
+            period = month.strftime("%Y-%m")
+            award = "r-nov-late-16" if month == extension[0] else f"r-{period}-00"
+            put("platform_financial_allocations", allocation_id=f"allocation-{period}", employee_id="e09",
+                award_transaction_id=f"award-{award}-e09", redemption_transaction_id=f"redeem-o-points-{period}",
+                allocated_points=25, funding_cost_minor=20, liability_released_minor=23, taxable_value_minor=28,
+                tax_jurisdiction="GB-DEMO", source_calculation_id=f"PLATFORM-SYNTHETIC-{period}")
 
     seed_reporting(db, tid, put, fifo)
 
@@ -388,7 +433,7 @@ def seed_reporting(db, tid, put, fifo):
                           (tid, filters["start"], filters["end_exclusive"])).fetchone()[0]
     for surface in ("dashboard", "curated_report", "detail_export"):
         put("report_runs", run_id="october-"+surface, report_id="R1", surface=surface,
-            filters_json=js(filters), data_as_of=AS_OF, definition_version="poc-v1-approval-utc",
+            filters_json=js(filters), data_as_of=stamp(REFERENCE_DAY, 16), definition_version="poc-v1-approval-utc",
             approved_event_count=count)
     for xid, status, completed, expiry, link, failure in [
         ("export-ready", "completed", "2026-11-10T17:01:00Z", "2026-11-11T17:01:00Z", "https://downloads.example.invalid/placeholder/ready", None),
@@ -400,7 +445,7 @@ def seed_reporting(db, tid, put, fifo):
         old = xid == "export-expired"
         put("export_jobs", export_id=xid, user_id="admin", report_id="R1", status=status,
             requested_at="2026-11-08T17:00:00Z" if old else "2026-11-10T17:00:00Z",
-            completed_at=completed, data_as_of="2026-11-08T16:59:00Z" if old else AS_OF,
+            completed_at=completed, data_as_of="2026-11-08T16:59:00Z" if old else stamp(REFERENCE_DAY, 16),
             filters_json=js(filters), columns_json=js(raw_columns),
             row_count=raw_rows if status in ("completed", "expired") else None,
             expires_at=expiry, download_link_placeholder=link, failure_reason=failure)

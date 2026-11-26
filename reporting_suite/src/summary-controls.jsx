@@ -30,7 +30,7 @@ export function SummaryControls({ data, filters, setFilters, asOf, children }) {
       <Filter
         label="Reporting period"
         value={filters.period}
-        options={periods}
+        options={periods(asOf)}
         onChange={(v) => change("period", v)}
       />
       {(output || filters.period === "custom") && (

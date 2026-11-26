@@ -395,7 +395,7 @@ export function Recognition({
     start < "2026-01-01" ||
     (!rollingDays[filters.period] && end > asOf)
   )
-    return <p>Choose a date range between January 1 and November 10, 2026.</p>;
+    return <p>Choose a date range between January 1, 2026 and {asOf}.</p>;
   const events = recognitionEvents(data, tab, start, end, scope, program, tag);
   if (output === "recipients") {
     const current = { start, end, label: "Current" };

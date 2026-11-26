@@ -939,7 +939,7 @@ function App() {
                   <div className="flex flex-wrap items-end gap-2.5">
                     {filter("eligibilityPeriod", "Eligibility period", [
                       ["any", "All eligibility dates"],
-                      ...periods,
+                      ...periods(asOf),
                     ])}
                     {filters.eligibilityPeriod === "custom" && (
                       <>

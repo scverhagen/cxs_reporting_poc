@@ -496,8 +496,7 @@ export function Overview({
       )}
       {!valid ? (
         <p role="alert">
-          Choose a valid reporting period between January 1 and{" "}
-          {shortDate(asOf)}, 2026.
+          Choose a valid reporting period between January 1, 2026 and {asOf}.
         </p>
       ) : filters.compare === "custom" && !previous ? (
         <ComparisonDatePrompt asOf={asOf} />

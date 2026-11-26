@@ -127,6 +127,12 @@ def verify(path):
         def one(sql, *args):
             return scalar(sql, (tenant, *args))
 
+        for table, timestamp in [("v_official_recognition", "activity_at"), ("user_logins", "occurred_at"),
+                                 ("orders", "submitted_at"), ("milestone_entitlements", "redeemed_at"),
+                                 ("bank_ledger", "occurred_at"), ("employee_points_ledger", "occurred_at")]:
+            count = one(f"""SELECT COUNT(DISTINCT substr({timestamp},1,7)) FROM {table}
+                        WHERE tenant_id=? AND {timestamp}>='2026-11-01' AND {timestamp}<'2028-01-01'""")
+            check(count == 14, f"{tenant}: {table} covers every extension month through December 2027")
         check(one("SELECT COUNT(*) FROM v_official_recognition WHERE tenant_id=? AND activity_at>='2026-10-01T00:00:00Z' AND activity_at<'2026-11-01T00:00:00Z'") == expected,
               f"{tenant}: known October recognition total")
         check(one("SELECT COUNT(*) FROM v_official_recognition WHERE tenant_id=? AND recognition_id='r-multi'") == 1,
@@ -140,16 +146,16 @@ def verify(path):
         check(one("SELECT COUNT(*) FROM v_milestone_nonresponders WHERE tenant_id=?") == 5,
               f"{tenant}: exactly five outstanding non-responders")
         for horizon, count in [(30, 1), (60, 2), (90, 3)]:
-            check(one("SELECT COUNT(*) FROM v_milestone_state WHERE tenant_id=? AND entitlement_state='upcoming' AND eligible_on <= date('2026-11-10', '+' || ? || ' days')", horizon) == count,
+            check(one("SELECT COUNT(*) FROM v_milestone_state WHERE tenant_id=? AND entitlement_state='upcoming' AND eligible_on <= date((SELECT value FROM dataset_metadata WHERE key='data_as_of'), '+' || ? || ' days')", horizon) == count,
                   f"{tenant}: {horizon}-day upcoming count")
         check(one("SELECT COUNT(*) FROM v_milestone_nonresponders WHERE tenant_id=? AND entitlement_id='m-redeemed-delayed'") == 0,
               f"{tenant}: redeemed but delayed milestone excluded from non-responders")
         check(one("SELECT COUNT(*) FROM v_milestone_nonresponders WHERE tenant_id=? AND notification_status='failed'") == 1,
               f"{tenant}: notification exception remains visible")
-        check(one("SELECT COUNT(*) FROM v_order_activity WHERE tenant_id=?") == 10,
-              f"{tenant}: ten unique orders across both sources")
-        check(one("SELECT SUM(item_units) FROM v_order_activity WHERE tenant_id=?") == 14,
-              f"{tenant}: fourteen units are distinct from order count")
+        check(one("SELECT COUNT(*) FROM v_order_activity WHERE tenant_id=?") == 38,
+              f"{tenant}: 38 unique orders across both sources")
+        check(one("SELECT SUM(item_units) FROM v_order_activity WHERE tenant_id=?") == 42,
+              f"{tenant}: 42 units are distinct from order count")
         check(one("SELECT COUNT(DISTINCT redemption_source) FROM v_order_activity WHERE tenant_id=?") == 2,
               f"{tenant}: both redemption sources")
         check(one("SELECT SUM(quantity) FROM shipment_items WHERE tenant_id=? AND order_id='o-points-partial'") == 2,
@@ -181,11 +187,11 @@ def verify(path):
     check(scalar("""SELECT COUNT(DISTINCT employee_id) FROM eligibility WHERE tenant_id='meridian' AND program_id='peer'
       AND can_receive=1 AND valid_from<'2026-11-01' AND (valid_to IS NULL OR valid_to>'2026-10-01')""") == 16,
           "Peer receiving denominator uses the eligible receiving population, not tenant headcount")
-    check(scalar("""SELECT SUM(allocated_points) FROM platform_financial_allocations WHERE tenant_id='cedar'""") == 120,
-          "Platform allocations reconcile to 120-point redemption")
-    check(scalar("SELECT SUM(taxable_value_minor) FROM platform_financial_allocations WHERE tenant_id='cedar'") == 132,
-          "Known platform-supplied taxable result is 132 USD minor units")
-    check(scalar("SELECT SUM(funding_cost_minor) FROM platform_financial_allocations WHERE tenant_id='cedar'") == 98,
+    check(scalar("""SELECT SUM(allocated_points) FROM platform_financial_allocations WHERE tenant_id='cedar'""") == 470,
+          "Platform allocations reconcile to the original and monthly redemptions")
+    check(scalar("SELECT SUM(taxable_value_minor) FROM platform_financial_allocations WHERE tenant_id='cedar'") == 524,
+          "Known platform-supplied taxable result is 524 USD minor units")
+    check(scalar("SELECT SUM(funding_cost_minor) FROM platform_financial_allocations WHERE tenant_id='cedar'") == 378,
           "Funding cost is independent from points, tax and order value")
     zero("""SELECT * FROM export_jobs WHERE completed_at IS NOT NULL
       AND (completed_at<requested_at OR data_as_of>completed_at)""", "Completed export timestamps follow request and data watermark")

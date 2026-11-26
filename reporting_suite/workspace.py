@@ -237,17 +237,9 @@ def clean_view(source, tenant, view, owner):
     if milestone_period != "any":
         period = milestone_period
     uses_period = period_report or milestone_period != "any"
-    if uses_period and period not in (
-        "last7",
-        "last30",
-        "last90",
-        "2026-09",
-        "2026-10",
-        "2026-11",
-        "custom",
-        "all",
-    ):
-        raise Problem(400, "Choose a valid reporting period.")
+    if uses_period and period not in ("last7", "last30", "last90", "custom", "all"):
+        if not re.fullmatch(r"[0-9]{4}-(?:0[1-9]|1[0-2])", period) or not "2026-01" <= period <= as_of[:7]:
+            raise Problem(400, "Choose a valid reporting period.")
     if uses_period and period == "custom":
         start, end = filters.get("start", ""), filters.get("end", "")
     elif (

@@ -16,14 +16,16 @@ export const rollingPeriods = [
   ["last90", "Last 90 days"],
 ];
 
-export const periods = [
-  ["2026-10", "October 2026"],
-  ["2026-11", "November to date"],
-  ["2026-09", "September 2026"],
-  ["all", "Year to date"],
-  ...rollingPeriods,
-  ["custom", "Custom dates"],
-];
+export function periods(asOf) {
+  const months = [];
+  const format = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  const month = new Date(asOf.slice(0, 7) + "-01T00:00:00Z");
+  while (month.getUTCFullYear() >= 2026) {
+    months.push([month.toISOString().slice(0, 7), format.format(month)]);
+    month.setUTCMonth(month.getUTCMonth() - 1);
+  }
+  return [...rollingPeriods, ["all", "Year to date"], ["custom", "Custom dates"], ...months];
+}
 export const defaults = {
   compare: "off",
   comparisonStart: "",

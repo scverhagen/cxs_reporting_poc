@@ -1,5 +1,5 @@
 {
-  "data_as_of": "2026-11-10T16:00:00Z",
+  "data_as_of": "2027-12-31T16:00:00Z",
   "synthetic": true,
   "definition_version": "poc-v1-approval-utc",
   "scenarios": [
@@ -9,13 +9,13 @@
       "focus": "Recognition, values, participation and historical eligibility",
       "counts": {
         "employees": 24,
-        "authentication_events": 1499,
-        "user_logins": 1495,
-        "recognitions": 146,
-        "milestone_entitlements": 13,
-        "orders": 10,
-        "employee_points_ledger": 131,
-        "bank_ledger": 101
+        "authentication_events": 3461,
+        "user_logins": 3457,
+        "recognitions": 341,
+        "milestone_entitlements": 34,
+        "orders": 38,
+        "employee_points_ledger": 280,
+        "bank_ledger": 238
       },
       "october_approved_events": 19,
       "october_approved_points": 850
@@ -26,13 +26,13 @@
       "focus": "Milestone pipeline, non-responders and notification exceptions",
       "counts": {
         "employees": 40,
-        "authentication_events": 2479,
-        "user_logins": 2475,
-        "recognitions": 102,
-        "milestone_entitlements": 13,
-        "orders": 10,
-        "employee_points_ledger": 125,
-        "bank_ledger": 79
+        "authentication_events": 5780,
+        "user_logins": 5776,
+        "recognitions": 250,
+        "milestone_entitlements": 34,
+        "orders": 38,
+        "employee_points_ledger": 244,
+        "bank_ledger": 186
       },
       "october_approved_events": 15,
       "october_approved_points": 725
@@ -43,13 +43,13 @@
       "focus": "Shared employee wallets, unified orders and fulfillment",
       "counts": {
         "employees": 60,
-        "authentication_events": 3518,
-        "user_logins": 3514,
-        "recognitions": 234,
-        "milestone_entitlements": 13,
-        "orders": 10,
-        "employee_points_ledger": 233,
-        "bank_ledger": 167
+        "authentication_events": 8247,
+        "user_logins": 8243,
+        "recognitions": 539,
+        "milestone_entitlements": 34,
+        "orders": 38,
+        "employee_points_ledger": 456,
+        "bank_ledger": 378
       },
       "october_approved_events": 27,
       "october_approved_points": 1225
@@ -60,13 +60,13 @@
       "focus": "Many-to-many funding banks, budgets and approval investigation",
       "counts": {
         "employees": 32,
-        "authentication_events": 2012,
-        "user_logins": 2008,
-        "recognitions": 124,
-        "milestone_entitlements": 13,
-        "orders": 10,
-        "employee_points_ledger": 128,
-        "bank_ledger": 90
+        "authentication_events": 4624,
+        "user_logins": 4620,
+        "recognitions": 299,
+        "milestone_entitlements": 34,
+        "orders": 38,
+        "employee_points_ledger": 264,
+        "bank_ledger": 214
       },
       "october_approved_events": 17,
       "october_approved_points": 775
@@ -77,13 +77,13 @@
       "focus": "Restricted reporting, financial extensions and asynchronous exports",
       "counts": {
         "employees": 36,
-        "authentication_events": 1957,
-        "user_logins": 1953,
-        "recognitions": 168,
-        "milestone_entitlements": 13,
-        "orders": 10,
-        "employee_points_ledger": 165,
-        "bank_ledger": 123
+        "authentication_events": 4695,
+        "user_logins": 4691,
+        "recognitions": 391,
+        "milestone_entitlements": 34,
+        "orders": 38,
+        "employee_points_ledger": 334,
+        "bank_ledger": 280
       },
       "october_approved_events": 21,
       "october_approved_points": 925
